@@ -84,12 +84,12 @@ inferenceops/
 
 We provide an interactive, dark-mode glassmorphism dashboard UI (`dashboard/`) to visually analyze latency distributions, TTFT, throughput stability trends, and infrastructure serving cost economics.
 
-### Launch Dashboard
-Run Python's built-in HTTP server to serve the dashboard:
+### Launch Dashboard Container
+Run Docker Compose to build and start both the Ollama runtime (`:11434`) and the Dashboard UI (`:8080`):
 ```bash
-python3 -m http.server 8080 --directory dashboard
+docker compose up -d
 ```
-Then navigate to `http://localhost:8080` in your web browser. You can load any benchmark JSON result file using the **Load JSON Result** button or drag-and-drop.
+Navigate to `http://localhost:8080` (or `http://<EC2-IP>:8080`) in your web browser. You can load any benchmark JSON result file using the **Load JSON Result** button or drag-and-drop.
 
 ---
 
