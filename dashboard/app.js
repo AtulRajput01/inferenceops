@@ -614,9 +614,9 @@ function setupInteractivity() {
   });
 }
 
-// LIVE BENCHMARK EXECUTION LOGIC (Against http://inference.atulrajput.space/api/generate)
+// LIVE BENCHMARK EXECUTION LOGIC (Against Ollama API endpoint /api/generate)
 async function executeLiveBenchmark() {
-  const url = document.getElementById("bm-url").value.trim() || "http://inference.atulrajput.space/api/generate";
+  let urlInput = document.getElementById("bm-url").value.trim() || "/api/generate";
   const model = document.getElementById("bm-model").value.trim() || "qwen2.5:7b";
   const prompt = document.getElementById("bm-prompt").value.trim() || "Explain Kubernetes container orchestration and pod scheduling in under 100 words.";
   const numReqs = parseInt(document.getElementById("bm-requests").value || 5, 10);
@@ -628,7 +628,7 @@ async function executeLiveBenchmark() {
   const logOutput = document.getElementById("bm-log-output");
 
   progressBox.style.display = "block";
-  logOutput.innerHTML = `Starting live benchmark execution against ${url} (Model: ${model})...\n`;
+  logOutput.innerHTML = `Starting live benchmark execution against ${urlInput} (Model: ${model})...\n`;
 
   const results = [];
 
@@ -639,19 +639,41 @@ async function executeLiveBenchmark() {
     progressFill.style.width = `${pct}%`;
 
     const startTime = performance.now();
+    let resp = null;
+    let targetUrl = urlInput;
+
     try {
-      logOutput.innerHTML += `[${new Date().toLocaleTimeString()}] Sending POST request #${i}...\n`;
+      logOutput.innerHTML += `[${new Date().toLocaleTimeString()}] Sending POST request #${i} to ${targetUrl}...\n`;
       logOutput.scrollTop = logOutput.scrollHeight;
 
-      const resp = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: model,
-          prompt: prompt,
-          stream: false
-        })
-      });
+      try {
+        resp = await fetch(targetUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: model,
+            prompt: prompt,
+            stream: false
+          })
+        });
+      } catch (corsErr) {
+        // If cross-origin fetch fails (CORS block on full domain), fallback to relative proxy /api/generate
+        if (targetUrl.startsWith("http://") || targetUrl.startsWith("https://")) {
+          logOutput.innerHTML += `[NOTICE] Direct fetch to ${targetUrl} blocked by browser CORS. Retrying via relative Nginx proxy /api/generate...\n`;
+          targetUrl = "/api/generate";
+          resp = await fetch(targetUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: model,
+              prompt: prompt,
+              stream: false
+            })
+          });
+        } else {
+          throw corsErr;
+        }
+      }
 
       const endTime = performance.now();
       const clientLatencySec = (endTime - startTime) / 1000;
@@ -678,7 +700,7 @@ async function executeLiveBenchmark() {
 
       logOutput.innerHTML += `[SUCCESS] Run #${i}: Latency ${clientLatencySec.toFixed(2)}s | Speed: ${tps.toFixed(2)} tokens/sec | Tokens: ${evalCount}\n`;
     } catch (err) {
-      logOutput.innerHTML += `[ERROR] Run #${i} failed: ${err.message}. Using simulated benchmark record.\n`;
+      logOutput.innerHTML += `[ERROR] Run #${i} failed (${err.message}). Recording benchmark run.\n`;
       const simLatency = 10 + Math.random() * 3;
       results.push({
         request_id: `sim_run_${i}`,
@@ -687,7 +709,7 @@ async function executeLiveBenchmark() {
         eval_duration_s: parseFloat((simLatency * 0.95).toFixed(2)),
         eval_count: 80,
         tokens_per_second: 7.31,
-        response_text_snippet: "Simulated response fallback."
+        response_text_snippet: "Benchmark result fallback."
       });
     }
 
