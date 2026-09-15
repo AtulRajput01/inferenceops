@@ -724,19 +724,23 @@ async function executeLiveBenchmark() {
   const meanLat = latencies.reduce((a, b) => a + b, 0) / latencies.length;
   const meanTps = tpsArr.reduce((a, b) => a + b, 0) / tpsArr.length;
 
+  const p50Lat = latencies[Math.floor(latencies.length * 0.5)] || meanLat;
+  const p95Lat = latencies[Math.floor(latencies.length * 0.95)] || meanLat;
+  const p99Lat = latencies[latencies.length - 1] || meanLat;
+
   const liveDataset = {
     metadata: {
       timestamp_utc: new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 15),
-      system_info: { hardware: "AWS EC2 c7i 8 vCPU (Live)" },
-      configuration: { url: url, model: model, prompt: prompt, num_requests: numReqs }
+      system_info: { hardware: "AWS EC2 c7i 8 vCPU (Live Run)" },
+      configuration: { url: urlInput, model: model, prompt: prompt, num_requests: numReqs }
     },
     summary_statistics: {
       count: numReqs,
       client_latency_s: {
         mean: parseFloat(meanLat.toFixed(2)),
-        p50: latencies[Math.floor(latencies.length * 0.5)],
-        p95: latencies[Math.floor(latencies.length * 0.95)],
-        p99: latencies[latencies.length - 1],
+        p50: parseFloat(p50Lat.toFixed(2)),
+        p95: parseFloat(p95Lat.toFixed(2)),
+        p99: parseFloat(p99Lat.toFixed(2)),
         min: latencies[0],
         max: latencies[latencies.length - 1]
       },
