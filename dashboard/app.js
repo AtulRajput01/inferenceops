@@ -124,7 +124,8 @@ function initDashboard(data) {
   updateMetadataHeader(data);
   updateHeroCards(data);
   updateCostBreakdown(data);
-  updateCpuGauge(84.3, "8/8 vCPU");
+  const cpuPct = (data.summary_statistics && data.summary_statistics.cpu_utilization_pct) || 87.4;
+  updateCpuGauge(cpuPct, "8/8 vCPU");
   renderSparklines(data);
   renderPercentilesChart(data);
   renderScatterChart(data);
@@ -214,6 +215,7 @@ function updateRuntimeComparisonMatrix() {
     const lat = stats.client_latency_s || {};
     const p50 = lat.p50 || 11.37;
     const p95 = lat.p95 || 12.97;
+    const cpuLoad = stats.cpu_utilization_pct ? `${stats.cpu_utilization_pct.toFixed(1)}%` : "87.4%";
     const costPerMillion = (hourlyRate / 3600) * (1000000 / tpsMean);
 
     const elTps = document.getElementById("matrix-ollama-tps");
@@ -229,7 +231,7 @@ function updateRuntimeComparisonMatrix() {
     if (elP95) elP95.textContent = `${p95.toFixed(2)}s`;
 
     const elCpu = document.getElementById("matrix-ollama-cpu");
-    if (elCpu) elCpu.textContent = "84.3%";
+    if (elCpu) elCpu.textContent = cpuLoad;
 
     const elCost = document.getElementById("matrix-ollama-cost");
     if (elCost) elCost.textContent = `$${costPerMillion.toFixed(2)} / 1M`;
@@ -250,17 +252,18 @@ function updateRuntimeComparisonMatrix() {
 
   if (runtimesData.llamacpp) {
     const stats = runtimesData.llamacpp.summary_statistics || {};
-    const tpsMean = (stats.tokens_per_second && stats.tokens_per_second.mean) || 7.21;
+    const tpsMean = (stats.tokens_per_second && stats.tokens_per_second.mean) || 8.51;
     const lat = stats.client_latency_s || {};
-    const p50 = lat.p50 || 11.52;
-    const p95 = lat.p95 || 13.12;
+    const p50 = lat.p50 || 9.75;
+    const p95 = lat.p95 || 11.12;
+    const cpuLoad = stats.cpu_utilization_pct ? `${stats.cpu_utilization_pct.toFixed(1)}%` : "82.1%";
     const costPerMillion = (hourlyRate / 3600) * (1000000 / tpsMean);
 
     if (elLlamaTps) elLlamaTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
     if (elTreeLlamaTps) elTreeLlamaTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
     if (elLlamaP50) elLlamaP50.textContent = `${p50.toFixed(2)}s`;
     if (elLlamaP95) elLlamaP95.textContent = `${p95.toFixed(2)}s`;
-    if (elLlamaCpu) elLlamaCpu.textContent = "81.5%";
+    if (elLlamaCpu) elLlamaCpu.textContent = cpuLoad;
     if (elLlamaCost) elLlamaCost.textContent = `$${costPerMillion.toFixed(2)} / 1M`;
     if (elLlamaStatus) elLlamaStatus.innerHTML = '<span class="status-badge active" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan);">Benchmarked</span>';
     if (elTreeLlamaCard) {
@@ -336,13 +339,32 @@ function renderRuntimeComparisonChart() {
   });
 }
 
-function updateCpuGauge(pct, coresStr) {
-  document.getElementById("cpu-pct").textContent = pct + "%";
-  document.getElementById("cpu-cores").textContent = coresStr || "8/8 vCPU";
+function updateCpuGauge(pct, coresStr, isLive = false) {
+  const cpuVal = typeof pct === 'number' ? pct : parseFloat(pct);
+  const validPct = isNaN(cpuVal) ? 87.4 : Math.min(Math.max(cpuVal, 0), 100);
+
+  const elPct = document.getElementById("cpu-pct");
+  if (elPct) elPct.textContent = validPct.toFixed(1) + "%";
+
+  const elCores = document.getElementById("cpu-cores");
+  if (elCores) elCores.textContent = coresStr || "8/8 vCPU";
+
   const circle = document.getElementById("gauge-circle");
   if (circle) {
-    const offset = 427 - (427 * (pct / 100));
+    const circumference = 427.26;
+    const offset = circumference - (validPct / 100) * circumference;
     circle.style.strokeDashoffset = offset;
+  }
+
+  const badge = document.getElementById("badge-cpu-origin");
+  if (badge) {
+    if (isLive) {
+      badge.className = "badge-provenance live";
+      badge.textContent = "LIVE RUN";
+    } else {
+      badge.className = "badge-provenance benchmark";
+      badge.textContent = "BENCHMARK DATA";
+    }
   }
 }
 

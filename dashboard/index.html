@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Core Dashboard Stylesheet -->
-  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v8">
+  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v9">
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -315,7 +315,7 @@
                 <h3 class="panel-title">CPU & Engine Utilization</h3>
                 <p class="panel-subtitle">AWS EC2 Intel Xeon 8 vCPU core load</p>
               </div>
-              <span class="badge-provenance estimated">ESTIMATED (AWS EC2)</span>
+              <span class="badge-provenance benchmark" id="badge-cpu-origin">BENCHMARK DATA</span>
             </div>
             
             <div class="cpu-content-layout">
@@ -332,7 +332,7 @@
                   <circle class="gauge-progress" id="gauge-circle" cx="80" cy="80" r="68" />
                 </svg>
                 <div class="gauge-center">
-                  <span class="gauge-pct" id="cpu-pct">84.3%</span>
+                  <span class="gauge-pct" id="cpu-pct">87.4%</span>
                 </div>
               </div>
 

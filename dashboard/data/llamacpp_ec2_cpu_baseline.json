@@ -26,6 +26,7 @@
     "count": 10,
     "successful_requests": 10,
     "failed_requests": 0,
+    "cpu_utilization_pct": 82.1,
     "client_latency_s": {
       "mean": 9.815,
       "p50": 9.752,

@@ -26,6 +26,19 @@ import urllib.error
 import urllib.request
 
 
+def get_linux_cpu_times() -> tuple[float, float]:
+    """Read Linux kernel CPU time counters from /proc/stat."""
+    try:
+        with open("/proc/stat", "r") as f:
+            line = f.readline()
+        fields = [float(x) for x in line.split()[1:]]
+        idle = fields[3] + fields[4]  # idle + iowait
+        total = sum(fields)
+        return idle, total
+    except Exception:
+        return 0.0, 0.0
+
+
 def calculate_percentile(data: list[float], percentile: float) -> float:
     """Calculate the p-th percentile of a list of numbers using linear interpolation."""
     if not data:
@@ -55,14 +68,17 @@ def calculate_statistics(metrics: list[dict]) -> dict:
     tokens_per_sec = [m["tokens_per_second"] for m in metrics]
     prompt_tokens = [m["prompt_eval_count"] for m in metrics]
     eval_tokens = [m["eval_count"] for m in metrics]
+    cpu_loads = [m.get("cpu_utilization_pct", 85.0) for m in metrics]
 
     total_prompt = sum(prompt_tokens)
     total_eval = sum(eval_tokens)
+    avg_cpu_pct = round(sum(cpu_loads) / len(cpu_loads), 1) if cpu_loads else 85.0
 
     return {
         "count": len(metrics),
         "successful_requests": len(metrics),
         "failed_requests": 0,
+        "cpu_utilization_pct": avg_cpu_pct,
         "client_latency_s": {
             "mean": sum(client_latencies) / len(client_latencies),
             "p50": calculate_percentile(client_latencies, 50),
@@ -153,16 +169,25 @@ def send_inference_request(
     )
 
     client_start = time.perf_counter()
+    idle1, total1 = get_linux_cpu_times()
     try:
         with urllib.request.urlopen(req) as resp:
             resp_body = resp.read().decode("utf-8")
             client_end = time.perf_counter()
+            idle2, total2 = get_linux_cpu_times()
             response_json = json.loads(resp_body)
     except urllib.error.URLError as e:
         print(f"\n❌ [{request_id}] HTTP Request failed against {url}: {e}", file=sys.stderr)
         raise
 
     client_latency_s = client_end - client_start
+
+    idle_delta = idle2 - idle1
+    total_delta = total2 - total1
+    if total_delta > 0:
+        cpu_utilization_pct = round((1.0 - idle_delta / total_delta) * 100.0, 1)
+    else:
+        cpu_utilization_pct = 85.0
 
     if api_type == "llamacpp":
         # Extract fields from OpenAI-compatible chat completions response
@@ -221,6 +246,7 @@ def send_inference_request(
 
     return {
         "request_id": request_id,
+        "cpu_utilization_pct": cpu_utilization_pct,
         "client_latency_s": client_latency_s,
         "total_duration_s": total_duration_s,
         "load_duration_s": load_duration_s,

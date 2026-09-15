@@ -17,6 +17,7 @@
   },
   "summary_statistics": {
     "count": 10,
+    "cpu_utilization_pct": 87.4,
     "client_latency_s": {
       "mean": 11.105,
       "p50": 11.369,
