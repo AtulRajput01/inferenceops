@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Core Dashboard Stylesheet -->
-  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v7">
+  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v8">
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -682,17 +682,17 @@
       <div class="modal-body">
         <div class="modal-option selected" data-model="qwen2.5:7b" data-url="/api/generate">
           <div>
-            <strong>qwen2.5:7b (AWS EC2 CPU Baseline)</strong>
+            <strong>qwen2.5:7b (Ollama EC2 CPU Baseline)</strong>
             <p>Target: /api/generate</p>
           </div>
           <span class="badge">Active Real Data</span>
         </div>
-        <div class="modal-option" data-model="Llama 2-70b-chat" data-url="/api/generate">
+        <div class="modal-option" data-model="Qwen 2.5 7B Q4_K_M GGUF" data-url="/llama/v1/chat/completions">
           <div>
-            <strong>Llama 2-70b-chat (GPU Target)</strong>
-            <p>Target: /api/generate</p>
+            <strong>Qwen 2.5 7B Q4_K_M GGUF (llama.cpp OpenAI Endpoint)</strong>
+            <p>Target: /llama/v1/chat/completions</p>
           </div>
-          <span class="badge">Remote</span>
+          <span class="badge" style="background: rgba(236, 72, 153, 0.15); color: var(--accent-pink);">Benchmarked</span>
         </div>
       </div>
     </div>

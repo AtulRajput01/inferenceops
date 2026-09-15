@@ -7,6 +7,18 @@
 
 ---
 
+## 🌐 Public Endpoints & Active Services
+
+| Service | Protocol / Route | Target Endpoint URL |
+| :--- | :--- | :--- |
+| **Dashboard UI** | Web Application | `http://inferencex.atulrajput.space/` |
+| **Public Ollama API** | Native Ollama REST | `http://inference.atulrajput.space/ollama/` |
+| **Public llama.cpp API** | OpenAI-Compatible Chat | `http://inference.atulrajput.space/llama/v1/chat/completions` |
+| **Local Ollama Backend** | Local Machine Benchmark | `http://127.0.0.1:11434/api/generate` |
+| **Local llama.cpp Backend** | Local Machine Benchmark | `http://127.0.0.1:18080/v1/chat/completions` |
+
+---
+
 ## 🎯 Overview & Engineering Philosophy
 
 **InferenceOps** is an end-to-end LLM inference platform designed to systematically measure, benchmark, and optimize the infrastructure economics and runtime performance of serving open-source Large Language Models (LLMs) on AWS.
@@ -18,7 +30,7 @@ Rather than treating LLM deployment as a black box, **InferenceOps** follows an 
 - How do latency distribution metrics (**P50 / P95 / P99**) degrade under increasing concurrency?
 - What is the precise overhead added by **Observability** (Prometheus, Grafana, Langfuse) and **Safety/Guardrails** (Guardrails AI)?
 - How do serving runtimes (**Ollama**, **llama.cpp**, **vLLM**) compare under identical workloads?
-- What is the true infrastructure serving **cost per 1K and 1M tokens**?
+- What is the true infrastructure serving **cost per 1M tokens**?
 
 ---
 
@@ -26,11 +38,12 @@ Rather than treating LLM deployment as a black box, **InferenceOps** follows an 
 
 ```mermaid
 flowchart TD
-    Client["Benchmark / Client Request"] -->|HTTP REST| API["FastAPI Layer (Planned)"]
-    API -->|Validation & Safety| Guardrails["Guardrails AI (Planned)"]
-    Guardrails -->|Orchestration| LangChain["LangChain (Planned)"]
-    LangChain -->|Inference Call| Runtime["Inference Engine (Ollama / vLLM)"]
-    Runtime -->|Model Execution| Model["Qwen 2.5 7B (qwen2.5:7b)"]
+    Client["Benchmark / Client Request"] -->|HTTP REST| Nginx["Nginx Reverse Proxy"]
+    Nginx -->|/api/ or /ollama/| Ollama["Ollama Engine (:11434)"]
+    Nginx -->|/llama/| LlamaCPP["llama.cpp Server (:18080)"]
+    
+    Ollama -->|Model Weight| QwenOllama["Qwen 2.5 7B (qwen2.5:7b)"]
+    LlamaCPP -->|GGUF Weights| QwenGGUF["Qwen 2.5 7B Q4_K_M GGUF"]
 
     subgraph Observability ["Observability & Infrastructure Monitoring"]
         Prometheus["Prometheus"]
@@ -38,7 +51,8 @@ flowchart TD
         Langfuse["Langfuse LLM Tracing"]
     end
 
-    Runtime -.->|Metrics & Tracing| Observability
+    Ollama -.->|Metrics & Tracing| Observability
+    LlamaCPP -.->|Metrics & Tracing| Observability
 ```
 
 ---
@@ -55,7 +69,7 @@ Current baseline evaluation is conducted on an AWS EC2 compute instance in `ap-s
 | **CPU Extensions** | AVX2, AVX-512, AVX-512 BF16, AVX-512 VNNI, AMX BF16, AMX INT8 |
 | **Memory & Swap** | 30 GiB RAM + 8 GiB Swap |
 | **Container Engine** | Docker `29.8.0` / Docker Compose `5.5.1` |
-| **Default Serving Model** | Qwen 2.5 7B (`qwen2.5:7b`, ~4.7 GB quantized parameters) |
+| **Default Serving Models** | Ollama: `qwen2.5:7b` \| llama.cpp: `Qwen2.5-7B-Instruct-GGUF Q4_K_M` |
 
 ---
 
@@ -65,14 +79,19 @@ Current baseline evaluation is conducted on an AWS EC2 compute instance in `ap-s
 inferenceops/
 ├── api/                   # FastAPI application & endpoint handlers (Planned - Exp 5)
 ├── benchmark/             # Benchmarking suite & performance scripts
-│   ├── results/           # Timestamped JSON output logs (gitignored)
-│   ├── benchmark.py       # Python benchmark script for sequential/batch performance testing
+│   ├── results/           # Timestamped JSON output logs
+│   │   ├── cpu_baseline_ollama_20260915_070200.json
+│   │   └── cpu_baseline_llamacpp_20260915_184500.json
+│   ├── benchmark.py       # Multi-runtime Python benchmark runner
 │   └── requirements.txt   # Python dependencies
 ├── dashboard/             # Interactive web dashboard UI & visualizer
+│   ├── data/              # Preloaded JSON benchmark datasets
 │   ├── index.html         # Dashboard HTML application
 │   ├── styles.css         # Dark glassmorphism styles & design system
-│   └── app.js             # Chart.js visualization logic & JSON file parser
-├── ollama/                # Persistent volume storage for Ollama model weights (gitignored)
+│   ├── app.js             # Chart.js visualizer & dynamic multi-runtime loader
+│   └── nginx.conf         # Dashboard & reverse proxy Nginx configuration
+├── llama.cpp/             # Volume mount for llama.cpp GGUF model weights
+├── ollama/                # Volume mount for Ollama model weights
 ├── docker-compose.yml     # Container service orchestration
 ├── .gitignore             # Git exclusion policies
 └── README.md              # Project master documentation
@@ -80,92 +99,110 @@ inferenceops/
 
 ---
 
-## 💻 Interactive Dashboard UI
+## 🚀 Quickstart & Docker Compose
 
-We provide an interactive, dark-mode glassmorphism dashboard UI (`dashboard/`) to visually analyze latency distributions, TTFT, throughput stability trends, and infrastructure serving cost economics.
-
-### Launch Dashboard Container
-Run Docker Compose to build and start both the Ollama runtime (`:11434`) and the Dashboard UI (`:8080`):
-```bash
-docker compose up -d
-```
-Navigate to `http://localhost:8080` (or `http://<EC2-IP>:8080`) in your web browser. You can load any benchmark JSON result file using the **Load JSON Result** button or drag-and-drop.
-
----
-
-## 🚀 Quickstart Guide
-
-### 1. Prerequisites
-- Docker & Docker Compose
-- Python 3.10+
-
-### 2. Start the Inference Engine
-Run Docker Compose to start the containerized Ollama service:
+### 1. Start Containerized Services
+Run Docker Compose to launch Ollama (`:11434`), llama.cpp (`:18080`), and Dashboard (`:8080`):
 ```bash
 docker compose up -d
 ```
 
-Verify service health:
+Verify service status:
 ```bash
-docker ps
-```
-
-### 3. Pull the Target Model
-Download Qwen 2.5 7B into the running container:
-```bash
-docker exec -it inferenceops-ollama ollama pull qwen2.5:7b
+docker compose ps
 ```
 
 ---
 
-## 📊 Benchmarking Baseline
+## 📊 Benchmarking Suite & Execution Commands
 
-We provide a zero-dependency Python script (`benchmark/benchmark.py`) to record detailed metrics for inference requests.
+We provide a repeatable Python benchmark runner (`benchmark/benchmark.py`) supporting both native Ollama API and OpenAI-compatible llama.cpp API endpoints.
 
-### Basic Usage
+> ℹ️ **Benchmark Methodology Note**: Official performance benchmarks measure local backend endpoints directly (`http://127.0.0.1:18080` and `http://127.0.0.1:11434`) to eliminate reverse proxy latency.
 
-To run a benchmark (1 warmup request + 10 sequential warm benchmark requests):
-```bash
-python3 benchmark/benchmark.py --url http://localhost:11434/api/generate --num-requests 10
-```
-
-### Advanced Usage & Remote Testing
+### 1. Execute Benchmark for Ollama
 ```bash
 python3 benchmark/benchmark.py \
-  --url http://inference.atulrajput.space/api/generate \
+  --url http://127.0.0.1:11434/api/generate \
+  --api-type ollama \
   --model qwen2.5:7b \
+  --runtime Ollama \
   --num-requests 10 \
-  --prompt "Explain Kubernetes container orchestration and pod scheduling in under 100 words."
+  --warmup 1 \
+  --concurrency 1 \
+  --temperature 0.0 \
+  --tag cpu_baseline_ollama \
+  --output-dir benchmark/results
 ```
 
-### Collected Metrics
-- **Client Latency (s)**: Wall-clock end-to-end response time.
-- **Time To First Token (TTFT)**: Estimated duration prior to initial generation (`load_duration + prompt_eval_duration`).
-- **Prompt Evaluation Duration & Tokens**: Pre-fill processing statistics.
-- **Generation Throughput (tokens/sec)**: `eval_count / eval_duration`.
-- **Statistical Percentiles**: Latency Mean, P50 (Median), P95, P99, Min, and Max.
+### 2. Execute Benchmark for llama.cpp
+```bash
+python3 benchmark/benchmark.py \
+  --url http://127.0.0.1:18080/v1/chat/completions \
+  --api-type llamacpp \
+  --model "Qwen 2.5 7B Q4_K_M GGUF" \
+  --runtime llama.cpp \
+  --num-requests 10 \
+  --warmup 1 \
+  --concurrency 1 \
+  --temperature 0.0 \
+  --tag cpu_baseline_llamacpp \
+  --output-dir benchmark/results
+```
 
-All results are automatically calculated and stored as structured JSON records in `benchmark/results/`.
+### 3. Public Endpoint API Testing
+To test against public Nginx endpoints:
+```bash
+# Public llama.cpp OpenAI-compatible Chat endpoint
+curl -X POST http://inference.atulrajput.space/llama/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "Qwen 2.5 7B Q4_K_M GGUF", "messages": [{"role": "user", "content": "Hello!"}], "temperature": 0}'
+
+# Public Ollama endpoint
+curl -X POST http://inference.atulrajput.space/ollama/api/generate \
+  -H "Content-Type: application/json" \
+  -d '{"model": "qwen2.5:7b", "prompt": "Hello!", "stream": false}'
+```
 
 ---
 
-## 🗺 Experiment Roadmap
+## 📋 JSON Result Schema
 
-- [x] **Experiment 1: CPU Baseline** — Initial deployment of Ollama + Qwen 2.5 7B on AWS EC2 CPU.
-- [x] **Experiment 2: Repeatable Benchmark Tooling** — Standardized Python benchmarking suite & metric tracking.
-- [ ] **Experiment 3: Concurrency & Load Testing** — Saturation testing under varying request concurrency (10–200 req/min).
-- [ ] **Experiment 4: Observability Layer** — Prometheus, Grafana & Langfuse tracing + overhead assessment.
-- [ ] **Experiment 5: API Layer** — FastAPI gateway integration & direct vs. proxied latency evaluation.
-- [ ] **Experiment 6: Orchestration Layer** — LangChain integration and performance overhead measurement.
-- [ ] **Experiment 7: Guardrails & Safety** — Guardrails AI evaluation and validation latency impact.
-- [ ] **Experiment 8: Quantization Benchmark** — Comparing FP16, Q8, Q6, Q4 model performance & RAM usage.
-- [ ] **Experiment 9: Runtime Comparison** — Benchmarking Ollama vs. `llama.cpp` engine.
-- [ ] **Experiment 10: GPU Acceleration Baseline** — Evaluating GPU serving performance (AWS G6/G6e or RTX 3060).
-- [ ] **Experiment 11: Production Serving with vLLM** — High-throughput serving comparison using vLLM PagedAttention.
-- [ ] **Experiment 12: CPU vs. GPU Infrastructure Economics** — Cost per request and cost per 1M tokens comparison.
-- [ ] **Experiment 13: Kubernetes Deployment** — EKS cluster migration with custom scheduling & probes.
-- [ ] **Experiment 14: Infrastructure as Code** — Full Terraform provisioning (VPC, SG, EC2, EKS, ALB).
-- [ ] **Experiment 15: CI/CD Pipeline** — GitHub Actions automated build, test, ECR push & EKS deployment.
+All benchmark executions generate structured JSON files saved under `benchmark/results/`:
+
+```json
+{
+  "metadata": {
+    "run_id": "RUN-20260915-LLAMACPP-001",
+    "runtime": "llama.cpp",
+    "endpoint": "http://127.0.0.1:18080/v1/chat/completions",
+    "timestamp_utc": "20260915_184500",
+    "system_info": {
+      "platform": "Linux-6.8.0-139-generic-x86_64",
+      "hardware": "AWS EC2 c7i / 8 vCPU Intel Xeon Platinum 8488C / 30GB RAM",
+      "runtime_engine": "llama.cpp"
+    },
+    "configuration": {
+      "url": "http://127.0.0.1:18080/v1/chat/completions",
+      "model": "Qwen 2.5 7B Q4_K_M GGUF",
+      "prompt": "Explain Kubernetes container orchestration and pod scheduling in under 100 words.",
+      "num_requests": 10,
+      "warmup_requests": 1,
+      "concurrency": 1,
+      "temperature": 0.0
+    }
+  },
+  "summary_statistics": {
+    "count": 10,
+    "successful_requests": 10,
+    "failed_requests": 0,
+    "client_latency_s": { "mean": 9.815, "p50": 9.752, "p95": 11.120, "p99": 11.185, "min": 7.510, "max": 11.210 },
+    "ttft_s": { "mean": 0.078, "p50": 0.077, "p95": 0.081, "p99": 0.082, "min": 0.075, "max": 0.083 },
+    "tokens_per_second": { "mean": 8.51, "p50": 8.51, "p95": 8.54, "p99": 8.55, "min": 8.48, "max": 8.55 },
+    "tokens": { "total_prompt_tokens": 460, "total_eval_tokens": 821, "total_tokens": 1281 }
+  }
+}
+```
 
 ---
 
