@@ -3,195 +3,241 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InferenceOps — LLM Inference & Performance Dashboard</title>
-  <meta name="description" content="Empirical benchmarking, observability, latency percentiles, and infrastructure cost optimization dashboard for open-source LLMs on AWS.">
+  <title>InferenceOps — LLM Inference Benchmarking Platform</title>
+  <meta name="description" content="InferenceOps LLM Inference Benchmarking Platform - Performance, Latency Percentiles & Cost Optimization Dashboard">
   <link rel="stylesheet" href="styles.css">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <!-- Header Navigation -->
-  <header class="header">
-    <div class="brand">
-      <div class="brand-icon">⚡</div>
-      <div class="brand-title">
-        <h1>InferenceOps</h1>
-        <p>LLM Infrastructure & Economics Dashboard</p>
+  <div class="app-shell">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">⚡</div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" title="Dashboard">🎛️</button>
+        <button class="nav-item" title="Benchmarks">📈</button>
+        <button class="nav-item" title="Topology">🌐</button>
+        <button class="nav-item" title="Analytics">📊</button>
+        <button class="nav-item" title="Logs">📁</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="nav-item" title="Settings">⚙️</button>
+        <button class="nav-item" title="Logout">🚪</button>
       </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="main-wrapper">
+      
+      <!-- Top Navigation Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="topbar-brand">
+            <h2>InferenceOps</h2>
+            <p>LLM Inference Benchmarking Platform</p>
+          </div>
+          
+          <nav class="topbar-tabs">
+            <a href="#" class="tab-link active">Dashboard</a>
+            <a href="#" class="tab-link">Benchmarks</a>
+            <a href="#" class="tab-link">Models</a>
+            <a href="#" class="tab-link">Monitoring</a>
+            <a href="#" class="tab-link">Settings</a>
+          </nav>
+        </div>
+
+        <div class="topbar-right">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Search benchmark...">
+          </div>
+
+          <button class="upload-trigger" id="upload-btn">📂 Load JSON</button>
+          <input type="file" id="file-input" accept=".json" style="display:none;">
+
+          <div class="user-profile">
+            <div class="avatar">PK</div>
+            <span class="user-name">Pavel K.</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Body Content -->
+      <main class="dashboard-body">
+        
+        <!-- Row 1: Hero Metric Cards -->
+        <div class="hero-row">
+          
+          <!-- Card 1: Throughput -->
+          <div class="hero-card">
+            <div>
+              <div class="hero-header">
+                <span class="hero-title">Throughput</span>
+              </div>
+              <div class="hero-value" id="kpi-tps">7.31 <span class="hero-unit">tokens/sec</span></div>
+              <div class="hero-sub">Mean generation speed</div>
+            </div>
+            <canvas id="sparkline-tps" class="sparkline-canvas"></canvas>
+          </div>
+
+          <!-- Card 2: TTFT -->
+          <div class="hero-card">
+            <div>
+              <div class="hero-header">
+                <span class="hero-title">TTFT</span>
+              </div>
+              <div class="hero-value" id="kpi-ttft">0.139s <span class="hero-unit">median</span></div>
+              <div class="hero-sub">Time To First Token</div>
+            </div>
+            <canvas id="sparkline-ttft" class="sparkline-canvas"></canvas>
+          </div>
+
+          <!-- Card 3: P99 Latency -->
+          <div class="hero-card">
+            <div>
+              <div class="hero-header">
+                <span class="hero-title">P99 Latency</span>
+              </div>
+              <div class="hero-value" id="kpi-p99">13.02s <span class="hero-unit">median</span></div>
+              <div class="hero-sub">99th percentile total duration</div>
+            </div>
+          </div>
+
+          <!-- Card 4: Model & Specs Info Card -->
+          <div class="specs-card">
+            <div class="spec-item">
+              <span class="spec-label">Model</span>
+              <span class="spec-val" id="spec-model">qwen2.5:7b</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Framework</span>
+              <span class="spec-val" id="spec-framework">Ollama Container</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Hardware</span>
+              <span class="spec-val" id="spec-hardware">AWS EC2 8 vCPU</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 2: Charts Grid -->
+        <div class="grid-row-2">
+          
+          <!-- Card 1: Latency Percentiles (P50 P95 P99) -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Latency Percentiles <span>(P50 P95 P99)</span></h3>
+                <p class="panel-subtitle">Latency distribution across warm benchmark runs</p>
+              </div>
+            </div>
+            <div class="chart-box">
+              <canvas id="chart-percentiles"></canvas>
+            </div>
+          </div>
+
+          <!-- Card 2: Per-Request Latency Timeline (Scatter/Timeline Plot) -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Per-Request Latency Timeline</h3>
+                <p class="panel-subtitle">Sequential request duration distribution</p>
+              </div>
+            </div>
+            <div class="chart-box">
+              <canvas id="chart-timeline-scatter"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Row 3: CPU Radial Gauge & Cost Card -->
+        <div class="grid-row-2">
+          
+          <!-- Card 1: CPU Utilization Radial Gauge -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">CPU Utilization</h3>
+                <p class="panel-subtitle">Compute instance physical & virtual core usage</p>
+              </div>
+            </div>
+            <div class="cpu-card-content">
+              <div class="gauge-wrapper">
+                <svg class="gauge-svg" viewBox="0 0 160 160">
+                  <defs>
+                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#00f2fe" />
+                      <stop offset="50%" stop-color="#a855f7" />
+                      <stop offset="100%" stop-color="#ec4899" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="gauge-bg" cx="80" cy="80" r="70" />
+                  <circle class="gauge-progress" id="gauge-circle" cx="80" cy="80" r="70" />
+                </svg>
+                <div class="gauge-center">
+                  <span class="gauge-pct" id="cpu-pct">84.3%</span>
+                </div>
+              </div>
+
+              <div class="cpu-meta">
+                <div>
+                  <span class="cpu-stat-label">Active Cores</span>
+                  <div class="cpu-stat-val">8 / 8 vCPU</div>
+                </div>
+                <div>
+                  <span class="cpu-stat-label">Load Distribution</span>
+                  <div class="mini-bars">
+                    <div class="mini-bar" style="height: 80%;"></div>
+                    <div class="mini-bar" style="height: 95%;"></div>
+                    <div class="mini-bar" style="height: 70%;"></div>
+                    <div class="mini-bar" style="height: 90%;"></div>
+                    <div class="mini-bar" style="height: 85%;"></div>
+                    <div class="mini-bar" style="height: 75%;"></div>
+                    <div class="mini-bar" style="height: 92%;"></div>
+                    <div class="mini-bar" style="height: 88%;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Cost per Million Tokens -->
+          <div class="card-panel">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Cost per Million Tokens</h3>
+                <p class="panel-subtitle">Estimated serving cost economics for open-source model execution</p>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: baseline; justify-content: space-between;">
+              <div>
+                <span class="cost-header-val" id="cost-1m">$14.58</span>
+                <span style="font-size: 16px; color: var(--text-muted);">/ 1M Tokens</span>
+              </div>
+              <div class="cost-breakdown">
+                <span style="font-size: 13px; color: var(--text-muted);"><span class="cost-dot dot-cyan"></span>Input: <strong style="color:#fff;" id="cost-input">$4.37</strong></span>
+                <span style="font-size: 13px; color: var(--text-muted);"><span class="cost-dot dot-pink"></span>Output: <strong style="color:#fff;" id="cost-output">$10.21</strong></span>
+              </div>
+            </div>
+
+            <div class="chart-box" style="height: 180px; margin-top: 10px;">
+              <canvas id="chart-cost-area"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+
     </div>
 
-    <div class="header-controls">
-      <div class="status-badge" id="status-badge">
-        <span class="pulse-dot"></span>
-        <span id="status-text">Experiment 2 Baseline</span>
-      </div>
-      <button class="upload-btn" id="upload-btn">
-        <span>📂</span> Load JSON Result
-      </button>
-      <input type="file" id="file-input" accept=".json">
-    </div>
-  </header>
-
-  <!-- Main Container -->
-  <main class="container">
-
-    <!-- Metadata Subheader Banner -->
-    <div class="meta-banner">
-      <div class="meta-item">
-        <span class="meta-label">Model Engine:</span>
-        <span class="meta-value chip" id="meta-model">qwen2.5:7b</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Hardware Environment:</span>
-        <span class="meta-value" id="meta-hardware">AWS EC2 (8 vCPU Intel Xeon Platinum)</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Experiment Tag:</span>
-        <span class="meta-value" id="meta-tag">cpu_baseline_ollama</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-label">Timestamp (UTC):</span>
-        <span class="meta-value" id="meta-timestamp">Live</span>
-      </div>
-    </div>
-
-    <!-- Top KPI Cards Grid -->
-    <section class="grid-kpi" id="kpi-section">
-      
-      <div class="kpi-card">
-        <div class="kpi-header">
-          <span class="kpi-title">Generation Speed</span>
-          <div class="kpi-icon">🚀</div>
-        </div>
-        <div class="kpi-value cyan" id="kpi-tps">7.31</div>
-        <div class="kpi-footer">tokens / second (Mean throughput)</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-header">
-          <span class="kpi-title">Time To First Token (TTFT)</span>
-          <div class="kpi-icon">⚡</div>
-        </div>
-        <div class="kpi-value purple" id="kpi-ttft">139 ms</div>
-        <div class="kpi-footer">Pre-fill & load processing time</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-header">
-          <span class="kpi-title">P95 Client Latency</span>
-          <div class="kpi-icon">📊</div>
-        </div>
-        <div class="kpi-value amber" id="kpi-p95">12.97 s</div>
-        <div class="kpi-footer">95th percentile total response time</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-header">
-          <span class="kpi-title">Avg Output Volume</span>
-          <div class="kpi-icon">📝</div>
-        </div>
-        <div class="kpi-value emerald" id="kpi-tokens">80.1</div>
-        <div class="kpi-footer">Average output tokens / request</div>
-      </div>
-
-    </section>
-
-    <!-- Main Visual Charts Grid -->
-    <section class="charts-grid">
-
-      <!-- Chart 1: Per Request Latency Breakdown -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <div>
-            <h2 class="chart-title">Per-Request Latency & TTFT Breakdown</h2>
-            <p class="chart-subtitle">End-to-end client latency vs Time To First Token per run</p>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas id="chart-timeline"></canvas>
-        </div>
-      </div>
-
-      <!-- Chart 2: Latency Percentile Distribution -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <div>
-            <h2 class="chart-title">Latency Percentiles (P50, P95, P99)</h2>
-            <p class="chart-subtitle">Statistical latency distribution across warm benchmark runs</p>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas id="chart-percentiles"></canvas>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Economics & Throughput Section -->
-    <section class="economics-section">
-      
-      <!-- Cost Economics Card -->
-      <div class="cost-card">
-        <div>
-          <h2 class="chart-title">Infrastructure Economics</h2>
-          <p class="chart-subtitle">Serving Cost per Million Tokens (AWS EC2 baseline)</p>
-          <div class="cost-highlight" id="cost-1m">$14.58</div>
-          <p style="font-size: 13px; color: var(--text-secondary);">Calculated serving cost per 1M generated tokens based on compute hardware execution efficiency.</p>
-        </div>
-
-        <div class="cost-details">
-          <div>
-            <span class="meta-label">Cost / 1K Tokens:</span>
-            <p style="font-size: 16px; font-weight: 600; color: var(--text-primary);" id="cost-1k">$0.0145</p>
-          </div>
-          <div>
-            <span class="meta-label">Compute Instance Rate:</span>
-            <p style="font-size: 16px; font-weight: 600; color: var(--text-primary);" id="cost-hourly">$0.384 / hr</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Throughput Stability Trend Chart -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <div>
-            <h2 class="chart-title">Throughput Stability Trend</h2>
-            <p class="chart-subtitle">Tokens per second generation rate stability over sequential runs</p>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas id="chart-throughput"></canvas>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Per-Run Detailed Data Table -->
-    <section class="table-card">
-      <h2 class="chart-title">Sequential Benchmark Run Logs</h2>
-      <p class="chart-subtitle">Individual metric breakdown recorded per request</p>
-      
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Request ID</th>
-              <th>Client Latency</th>
-              <th>TTFT</th>
-              <th>Generation Duration</th>
-              <th>Output Tokens</th>
-              <th>Generation Speed</th>
-            </tr>
-          </thead>
-          <tbody id="table-body">
-            <!-- Dynamically populated by app.js -->
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-  </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
