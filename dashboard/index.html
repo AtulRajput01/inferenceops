@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>InferenceOps — LLM Inference Benchmarking Platform</title>
-  <meta name="description" content="InferenceOps LLM Inference Benchmarking Platform - Real Performance, Latency Percentiles & Cost Optimization Dashboard">
+  <meta name="description" content="InferenceOps LLM Inference Benchmarking Platform - Performance, Latency Percentiles & Cost Optimization Dashboard">
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Core Dashboard Stylesheet -->
-  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v3">
+  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v4">
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -52,7 +52,7 @@
         <button class="nav-item" data-tab="benchmarks" title="Run Benchmarks">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
         </button>
-        <button class="nav-item" data-tab="models" title="Models Specs">
+        <button class="nav-item" data-tab="models" title="Runtime Comparison Matrix">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><path d="M12 8v4M7.5 17.5l3-3.5M16.5 17.5l-3-3.5"/></svg>
         </button>
         <button class="nav-item" data-tab="monitoring" title="Infrastructure Monitoring">
@@ -103,7 +103,7 @@
           <nav class="topbar-tabs">
             <button class="tab-link active" data-tab="dashboard">Dashboard</button>
             <button class="tab-link" data-tab="benchmarks">Benchmarks</button>
-            <button class="tab-link" data-tab="models">Models</button>
+            <button class="tab-link" data-tab="models">Runtime Comparison</button>
             <button class="tab-link" data-tab="monitoring">Monitoring</button>
             <button class="tab-link" data-tab="settings">Settings</button>
           </nav>
@@ -136,6 +136,49 @@
       <!-- TAB 1: DASHBOARD VIEW -->
       <main class="dashboard-body view-section active" id="view-dashboard">
         
+        <!-- REPRODUCIBLE BENCHMARK RUN METADATA HEADER -->
+        <div class="run-metadata-card">
+          <div class="run-meta-primary">
+            <div class="run-id-pill" id="meta-run-id">RUN-20260915-001</div>
+            <span class="badge-provenance benchmark-data" id="badge-data-origin">BENCHMARK DATA</span>
+          </div>
+
+          <div class="run-meta-grid">
+            <div class="meta-item">
+              <span class="meta-label">Model</span>
+              <span class="meta-val" id="meta-model">Qwen 2.5 7B</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Runtime Engine</span>
+              <span class="meta-val" id="meta-runtime">Ollama</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Hardware</span>
+              <span class="meta-val" id="meta-hardware">AWS EC2 c7i (8 vCPU Intel Xeon)</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Concurrency (c)</span>
+              <span class="meta-val" id="meta-concurrency">1 worker</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Requests / Warmup</span>
+              <span class="meta-val" id="meta-requests">10 reqs / 1 warmup</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Sample Size (n)</span>
+              <span class="meta-val" id="meta-sample-count">n = 10 samples</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Total Duration</span>
+              <span class="meta-val" id="meta-duration">111.05s total</span>
+            </div>
+            <div class="meta-item meta-item-wide">
+              <span class="meta-label">Benchmark Prompt</span>
+              <span class="meta-val meta-prompt" id="meta-prompt">"Explain Kubernetes container orchestration and pod scheduling in under 100 words."</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Row 1: Hero Metric Cards & Selector Stack -->
         <div class="hero-row">
           
@@ -143,13 +186,14 @@
           <div class="hero-card">
             <div class="hero-card-header">
               <span class="hero-title">Throughput</span>
+              <span class="card-tag">BENCHMARK DATA</span>
             </div>
             <div class="hero-card-body">
               <div class="hero-value-wrapper">
                 <span class="hero-value" id="kpi-tps">7.31</span>
                 <span class="hero-unit">tokens/sec</span>
               </div>
-              <div class="hero-sub" id="kpi-tps-sub">Mean evaluation throughput</div>
+              <div class="hero-sub" id="kpi-tps-sub">Mean token generation throughput</div>
             </div>
             <div class="sparkline-wrapper">
               <canvas id="sparkline-tps"></canvas>
@@ -160,6 +204,7 @@
           <div class="hero-card">
             <div class="hero-card-header">
               <span class="hero-title">TTFT</span>
+              <span class="card-tag">BENCHMARK DATA</span>
             </div>
             <div class="hero-card-body">
               <div class="hero-value-wrapper">
@@ -176,6 +221,7 @@
           <div class="hero-card">
             <div class="hero-card-header">
               <span class="hero-title">P99 Latency</span>
+              <span class="card-tag">BENCHMARK DATA</span>
             </div>
             <div class="hero-card-body">
               <div class="hero-value-wrapper">
@@ -226,8 +272,9 @@
               <div class="panel-header-left">
                 <h3 class="panel-title">
                   Latency Percentiles (<span class="legend-p50">P50</span> <span class="legend-p95">P95</span> <span class="legend-p99">P99</span>)
+                  <span class="sample-badge" id="sample-count-badge">n = 10 samples</span>
                 </h3>
-                <p class="panel-subtitle">Real duration distribution across sequential benchmark runs</p>
+                <p class="panel-subtitle">Distribution across sequential requests (Note: P95 & P99 collapse on small sample size n=10)</p>
               </div>
               <button class="panel-menu-btn" id="btn-export-percentiles" title="Export Percentile Data">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
@@ -243,10 +290,10 @@
             <div class="panel-header">
               <div class="panel-header-left">
                 <h3 class="panel-title">Per-Request Latency Timeline</h3>
-                <p class="panel-subtitle" id="scatter-sub">qwen2.5:7b , real sequential request logs</p>
+                <p class="panel-subtitle" id="scatter-sub">Sequential request execution timestamps (n=10)</p>
               </div>
               <select class="time-filter-dropdown" id="filter-timeline-range">
-                <option value="all">All Benchmark Runs</option>
+                <option value="all">All Sequential Runs</option>
                 <option value="last5">Last 5 Runs</option>
                 <option value="last10" selected>Last 10 Runs</option>
               </select>
@@ -264,8 +311,11 @@
           <!-- Panel 3: CPU Utilization -->
           <div class="card-panel">
             <div class="panel-header">
-              <h3 class="panel-title">CPU & Engine Utilization</h3>
-              <p class="panel-subtitle">AWS EC2 Intel Xeon 8 vCPU core activity</p>
+              <div>
+                <h3 class="panel-title">CPU & Engine Utilization</h3>
+                <p class="panel-subtitle">AWS EC2 Intel Xeon 8 vCPU core load</p>
+              </div>
+              <span class="badge-provenance estimated">ESTIMATED (AWS EC2)</span>
             </div>
             
             <div class="cpu-content-layout">
@@ -302,22 +352,26 @@
             </div>
           </div>
 
-          <!-- Panel 4: Cost per Million Tokens -->
-          <div class="card-panel">
+          <!-- Panel 4: Cost per Million Tokens (Clickable Methodology Modal) -->
+          <div class="card-panel card-clickable" id="btn-open-cost-modal" title="Click to view transparent cost formula and calculation breakdown">
             <div class="panel-header cost-panel-header">
               <div>
-                <h3 class="panel-title">Infrastructure Serving Cost</h3>
-                <p class="panel-subtitle">Estimated economics on AWS EC2 On-Demand rate ($0.384/hr)</p>
+                <h3 class="panel-title">Infrastructure Serving Cost ℹ️</h3>
+                <p class="panel-subtitle">Click card to view calculation methodology</p>
               </div>
               <div class="cost-legend">
-                <span class="legend-item"><span class="dot dot-cyan"></span>Input <strong id="cost-input">$4.37</strong></span>
-                <span class="legend-item"><span class="dot dot-pink"></span>Output <strong id="cost-output">$10.21</strong></span>
+                <span class="badge-provenance estimated">ESTIMATED METHODOLOGY</span>
               </div>
             </div>
 
             <div class="cost-hero-value">
-              <span class="cost-amount" id="cost-1m">$14.58</span>
+              <span class="cost-amount" id="cost-1m">$14.59</span>
               <span class="cost-unit">/ 1M Tokens</span>
+            </div>
+
+            <div class="cost-sub-breakdown">
+              <span><strong id="cost-input">$4.38</strong> Input (30%)</span>
+              <span><strong id="cost-output">$10.21</strong> Output (70%)</span>
             </div>
 
             <div class="chart-box cost-chart-box">
@@ -335,7 +389,7 @@
           <div class="panel-header">
             <div>
               <h2 class="panel-title" style="font-size: 20px;">Live Inference Benchmark Suite</h2>
-              <p class="panel-subtitle">Execute benchmark requests directly against target inference endpoints</p>
+              <p class="panel-subtitle">Execute benchmark requests directly against target inference endpoints with configurable concurrency</p>
             </div>
             <button class="btn-run-live" id="btn-trigger-benchmark">🚀 Run Benchmark Suite</button>
           </div>
@@ -353,7 +407,17 @@
 
             <div class="form-group">
               <label>Number of Requests</label>
-              <input type="number" id="bm-requests" value="5" min="1" max="50">
+              <input type="number" id="bm-requests" value="10" min="1" max="100">
+            </div>
+
+            <div class="form-group">
+              <label>Concurrency Workers (c)</label>
+              <input type="number" id="bm-concurrency" value="1" min="1" max="10">
+            </div>
+
+            <div class="form-group">
+              <label>Warmup Requests</label>
+              <input type="number" id="bm-warmup" value="1" min="0" max="5">
             </div>
 
             <div class="form-group full-width">
@@ -364,50 +428,94 @@
 
           <div class="live-progress-container" id="live-progress-box" style="display:none;">
             <div class="progress-bar-label">
-              <span id="bm-status-text">Executing Request 1 of 5...</span>
-              <span id="bm-status-pct">20%</span>
+              <span id="bm-status-text">Executing Request 1 of 10...</span>
+              <span id="bm-status-pct">10%</span>
             </div>
             <div class="progress-track">
-              <div class="progress-fill" id="bm-progress-fill" style="width: 20%;"></div>
+              <div class="progress-fill" id="bm-progress-fill" style="width: 10%;"></div>
             </div>
             <div class="live-log-output" id="bm-log-output">
-              Initializing benchmark against http://inference.atulrajput.space/api/generate...
+              Initializing benchmark against /api/generate...
+            </div>
+
+            <!-- COMPLETION ACTION BAR -->
+            <div class="completion-action-bar" id="bm-completion-actions" style="display:none;">
+              <span class="completion-tag">✓ Benchmark Complete</span>
+              <button class="btn-action" id="btn-export-json">📥 Export JSON</button>
+              <button class="btn-action" id="btn-save-run">💾 Save Run</button>
+              <button class="btn-action primary" id="btn-view-dashboard-results">📊 View Dashboard Metrics</button>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 3: MODELS VIEW -->
+      <!-- TAB 3: RUNTIME COMPARISON MATRIX -->
       <section class="dashboard-body view-section" id="view-models" style="display:none;">
         <div class="card-panel">
-          <h2 class="panel-title" style="font-size: 20px; margin-bottom: 16px;">Deployed LLM Serving Models</h2>
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title" style="font-size: 20px;">LLM Serving Runtime & Hardware Comparison Matrix</h2>
+              <p class="panel-subtitle">Empirical performance & infrastructure cost benchmark matrix across engines and hardware</p>
+            </div>
+          </div>
+
           <table class="data-table">
             <thead>
               <tr>
-                <th>Model Name</th>
-                <th>Quantization</th>
-                <th>Parameter Size</th>
-                <th>Architecture</th>
-                <th>Default Endpoint</th>
-                <th>Status</th>
+                <th>Runtime Engine</th>
+                <th>Model</th>
+                <th>Hardware / Specs</th>
+                <th>Throughput</th>
+                <th>P95 Latency</th>
+                <th>Cost / 1M Tokens</th>
+                <th>Status / Experiment</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td><strong>qwen2.5:7b</strong></td>
-                <td>Q4_K_M (4-bit)</td>
-                <td>7.61B</td>
-                <td>Qwen2 Architecture</td>
-                <td><code>http://inference.atulrajput.space/api/generate</code></td>
-                <td><span class="status-badge active">Online / Active</span></td>
+              <tr class="highlight-row">
+                <td><span class="engine-badge ollama">Ollama</span></td>
+                <td><strong>Qwen 2.5 7B</strong></td>
+                <td>AWS EC2 c7i (8 vCPU Intel Xeon)</td>
+                <td><strong style="color: var(--accent-cyan);">7.31 tok/s</strong></td>
+                <td>12.97s</td>
+                <td>$14.59 / 1M</td>
+                <td><span class="status-badge active">Completed (Exp 1)</span></td>
               </tr>
               <tr>
-                <td><strong>Llama 2-70b-chat</strong></td>
-                <td>Q4_0</td>
-                <td>70B</td>
-                <td>Llama 2</td>
-                <td><code>http://inference.atulrajput.space/api/generate</code></td>
-                <td><span class="status-badge standby">Standby / Remote</span></td>
+                <td><span class="engine-badge llama">llama.cpp</span></td>
+                <td><strong>Qwen 2.5 7B</strong></td>
+                <td>AWS EC2 c7i (8 vCPU Intel Xeon)</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td><span class="status-badge standby">Planned (Exp 9)</span></td>
+              </tr>
+              <tr>
+                <td><span class="engine-badge vllm">vLLM</span></td>
+                <td><strong>Qwen 2.5 7B</strong></td>
+                <td>AWS EC2 c7i (8 vCPU Intel Xeon)</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td><span class="status-badge standby">Planned (Exp 11)</span></td>
+              </tr>
+              <tr>
+                <td><span class="engine-badge ollama">Ollama</span></td>
+                <td><strong>Qwen 2.5 7B</strong></td>
+                <td>NVIDIA RTX 3060 (12GB VRAM)</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td><span class="status-badge standby">Planned (Exp 10)</span></td>
+              </tr>
+              <tr>
+                <td><span class="engine-badge vllm">vLLM</span></td>
+                <td><strong>Qwen 2.5 7B</strong></td>
+                <td>AWS G6 (NVIDIA A10G GPU)</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td><span class="status-badge standby">Planned (Exp 10)</span></td>
               </tr>
             </tbody>
           </table>
@@ -450,10 +558,10 @@
           <h2 class="panel-title" style="font-size: 20px; margin-bottom: 16px;">Platform Settings & Endpoints</h2>
           <div class="form-group">
             <label>Default Inference Endpoint URL</label>
-            <input type="text" id="setting-endpoint" value="http://inference.atulrajput.space/api/generate">
+            <input type="text" id="setting-endpoint" value="/api/generate">
           </div>
           <div class="form-group">
-            <label>Hardware Hourly Cost Rate ($/hr)</label>
+            <label>AWS EC2 Hardware Hourly Rate ($/hr)</label>
             <input type="number" id="setting-rate" value="0.384" step="0.01">
           </div>
           <button class="btn-run-live" id="btn-save-settings">Save Settings</button>
@@ -464,7 +572,54 @@
 
   </div>
 
-  <!-- Interactive Model Selector Modal -->
+  <!-- MODAL 1: TRANSPARENT COST METHODOLOGY MODAL -->
+  <div class="modal-overlay" id="modal-cost-methodology" style="display:none;">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h3>Infrastructure Serving Cost Methodology</h3>
+        <button class="modal-close" id="modal-cost-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="formula-box">
+          <div class="formula-title">Cost Calculation Formula</div>
+          <div class="formula-eqn">
+            $$\text{Cost / 1M Tokens} = \frac{\text{AWS EC2 Hourly Rate (\$0.384)}}{\text{Throughput (tok/s)} \times 3600} \times 1,000,000$$
+          </div>
+        </div>
+
+        <table class="data-table" style="margin-top: 16px;">
+          <tbody>
+            <tr>
+              <td><strong>Target Instance</strong></td>
+              <td>AWS EC2 c7i.2xlarge (8 vCPU Intel Xeon / 30GB RAM)</td>
+            </tr>
+            <tr>
+              <td><strong>AWS On-Demand Rate</strong></td>
+              <td><code>$0.384 / hour</code> ($9.216 / day)</td>
+            </tr>
+            <tr>
+              <td><strong>Observed Throughput</strong></td>
+              <td><code id="cost-calc-tps">7.31 tokens / sec</code></td>
+            </tr>
+            <tr>
+              <td><strong>Tokens Generated per Hour</strong></td>
+              <td><code id="cost-calc-tph">26,316 tokens / hour</code></td>
+            </tr>
+            <tr>
+              <td><strong>Calculated Cost per 1M Tokens</strong></td>
+              <td><strong style="color: var(--accent-pink); font-size: 16px;" id="cost-calc-total">$14.59 / 1M Tokens</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Token Cost Distribution</strong></td>
+              <td>Input (30% @ <span id="cost-calc-input">$4.38</span>) | Output (70% @ <span id="cost-calc-output">$10.21</span>)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: INTERACTIVE MODEL SELECTOR MODAL -->
   <div class="modal-overlay" id="modal-selector" style="display:none;">
     <div class="modal-content">
       <div class="modal-header">
@@ -472,17 +627,17 @@
         <button class="modal-close" id="modal-close-btn">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="modal-option selected" data-model="qwen2.5:7b" data-url="http://inference.atulrajput.space/api/generate">
+        <div class="modal-option selected" data-model="qwen2.5:7b" data-url="/api/generate">
           <div>
             <strong>qwen2.5:7b (AWS EC2 CPU Baseline)</strong>
-            <p>Target: http://inference.atulrajput.space/api/generate</p>
+            <p>Target: /api/generate</p>
           </div>
           <span class="badge">Active Real Data</span>
         </div>
-        <div class="modal-option" data-model="Llama 2-70b-chat" data-url="http://inference.atulrajput.space/api/generate">
+        <div class="modal-option" data-model="Llama 2-70b-chat" data-url="/api/generate">
           <div>
             <strong>Llama 2-70b-chat (GPU Target)</strong>
-            <p>Target: http://inference.atulrajput.space/api/generate</p>
+            <p>Target: /api/generate</p>
           </div>
           <span class="badge">Remote</span>
         </div>
@@ -490,6 +645,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260915_v3"></script>
+  <script src="app.js?v=20260915_v4"></script>
 </body>
 </html>

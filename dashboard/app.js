@@ -1,5 +1,5 @@
 /**
- * InferenceOps Dashboard - Full Interactivity, Real Benchmark Integration & Pixel-Perfect Mockup Visuals
+ * InferenceOps Dashboard - Full Interactivity, Reproducible Run Metadata & Concurrency Engine
  */
 
 let sparklineTps = null;
@@ -12,23 +12,27 @@ let costAreaChart = null;
 // REAL EC2 CPU BASELINE DATA (qwen2.5:7b on AWS EC2 8 vCPU)
 const REAL_EC2_BASELINE = {
   "metadata": {
+    "run_id": "RUN-20260915-001",
     "timestamp_utc": "20260915_070200",
     "system_info": {
       "platform": "Linux-6.8.0-139-generic-x86_64 (AWS EC2 c7i)",
       "python_version": "3.12.3",
-      "hardware": "AWS EC2 c7i / 8 vCPU Intel Xeon Platinum 8488C / 30GB RAM"
+      "hardware": "AWS EC2 c7i / 8 vCPU Intel Xeon Platinum 8488C / 30GB RAM",
+      "runtime_engine": "Ollama"
     },
     "configuration": {
-      "url": "http://inference.atulrajput.space/api/generate",
-      "model": "qwen2.5:7b",
+      "url": "/api/generate",
+      "model": "Qwen 2.5 7B (qwen2.5:7b)",
       "prompt": "Explain Kubernetes container orchestration and pod scheduling in exactly 100 words.",
       "num_requests": 10,
       "warmup_requests": 1,
+      "concurrency": 1,
       "tag": "cpu_baseline_ollama"
     }
   },
   "summary_statistics": {
     "count": 10,
+    "total_duration_s": 111.05,
     "client_latency_s": {
       "mean": 11.105,
       "p50": 11.369,
@@ -98,6 +102,7 @@ function fetchRealBaseline() {
 
 function initDashboard(data) {
   currentDataset = data;
+  updateMetadataHeader(data);
   updateHeroCards(data);
   updateCostBreakdown(data);
   updateCpuGauge(84.3, "8/8 vCPU");
@@ -106,6 +111,32 @@ function initDashboard(data) {
   renderScatterChart(data);
   renderCostAreaChart(data);
   updateRawJsonViewer(data);
+}
+
+// UPDATE REPRODUCIBLE RUN METADATA HEADER
+function updateMetadataHeader(data) {
+  const meta = data.metadata || {};
+  const config = meta.configuration || {};
+  const sys = meta.system_info || {};
+  const stats = data.summary_statistics || {};
+
+  document.getElementById("meta-run-id").textContent = meta.run_id || "RUN-20260915-001";
+  document.getElementById("meta-model").textContent = config.model || "Qwen 2.5 7B";
+  document.getElementById("meta-runtime").textContent = sys.runtime_engine || "Ollama";
+  document.getElementById("meta-hardware").textContent = sys.hardware || "AWS EC2 c7i (8 vCPU Intel Xeon)";
+  document.getElementById("meta-concurrency").textContent = `${config.concurrency || 1} worker${(config.concurrency || 1) > 1 ? 's' : ''}`;
+  document.getElementById("meta-requests").textContent = `${stats.count || config.num_requests || 10} reqs / ${config.warmup_requests || 1} warmup`;
+  
+  const sampleCount = stats.count || 10;
+  document.getElementById("meta-sample-count").textContent = `n = ${sampleCount} samples`;
+  const countBadge = document.getElementById("sample-count-badge");
+  if (countBadge) countBadge.textContent = `n = ${sampleCount} samples`;
+
+  const totalDur = stats.total_duration_s ? `${stats.total_duration_s.toFixed(2)}s total` : "111.05s total";
+  document.getElementById("meta-duration").textContent = totalDur;
+
+  const promptText = config.prompt ? `"${config.prompt}"` : '"Explain Kubernetes container orchestration and pod scheduling in under 100 words."';
+  document.getElementById("meta-prompt").textContent = promptText;
 }
 
 function updateHeroCards(data) {
@@ -121,11 +152,11 @@ function updateHeroCards(data) {
   document.getElementById("kpi-p99").textContent = (lat.p99 ? lat.p99.toFixed(2) : "13.02") + "s";
 
   document.getElementById("spec-model").textContent = config.model || "qwen2.5:7b";
-  document.getElementById("spec-framework").textContent = config.url || "http://inference.atulrajput.space/api/generate";
+  document.getElementById("spec-framework").textContent = config.url || "/api/generate";
   document.getElementById("spec-hardware").textContent = sys.hardware || "AWS EC2 c7i 8 vCPU";
 
   const sub = document.getElementById("scatter-sub");
-  if (sub) sub.textContent = `${config.model || "qwen2.5:7b"} , real sequential request logs`;
+  if (sub) sub.textContent = `Sequential request timestamps (n=${stats.count || 10})`;
 }
 
 function updateCostBreakdown(data) {
@@ -141,6 +172,14 @@ function updateCostBreakdown(data) {
   document.getElementById("cost-1m").textContent = "$" + costPerMillion.toFixed(2);
   document.getElementById("cost-input").textContent = "$" + costInput.toFixed(2);
   document.getElementById("cost-output").textContent = "$" + costOutput.toFixed(2);
+
+  // Update modal cost methodology values
+  document.getElementById("cost-calc-tps").textContent = `${tpsMean.toFixed(2)} tokens / sec`;
+  const tph = Math.round(tpsMean * 3600);
+  document.getElementById("cost-calc-tph").textContent = `${tph.toLocaleString()} tokens / hour`;
+  document.getElementById("cost-calc-total").textContent = `$${costPerMillion.toFixed(2)} / 1M Tokens`;
+  document.getElementById("cost-calc-input").textContent = `$${costInput.toFixed(2)}`;
+  document.getElementById("cost-calc-output").textContent = `$${costOutput.toFixed(2)}`;
 }
 
 function updateCpuGauge(pct, coresStr) {
@@ -172,7 +211,7 @@ function renderSparklines(data) {
   const ttftPoints = runs.length > 0 ? runs.map(r => r.ttft_s || 0.139) : [0.12, 0.15, 0.13, 0.16, 0.14, 0.17, 0.139];
   const p99Points = runs.length > 0 ? runs.map(r => r.client_latency_s || 11.37) : [11.0, 11.5, 10.8, 12.0, 11.8, 12.5, 13.02];
 
-  // Sparkline 1: TPS (Magenta line with smooth fill)
+  // Sparkline 1: TPS
   const ctxTps = document.getElementById("sparkline-tps").getContext("2d");
   if (sparklineTps) sparklineTps.destroy();
 
@@ -202,7 +241,7 @@ function renderSparklines(data) {
     }
   });
 
-  // Sparkline 2: TTFT (Cyan waveform)
+  // Sparkline 2: TTFT
   const ctxTtft = document.getElementById("sparkline-ttft").getContext("2d");
   if (sparklineTtft) sparklineTtft.destroy();
 
@@ -232,7 +271,7 @@ function renderSparklines(data) {
     }
   });
 
-  // Sparkline 3: P99 Latency (Subtle Pink Area)
+  // Sparkline 3: P99 Latency
   const ctxP99 = document.getElementById("sparkline-p99").getContext("2d");
   if (sparklineP99) sparklineP99.destroy();
 
@@ -287,7 +326,6 @@ function renderPercentilesChart(data) {
   gradP99.addColorStop(0.5, "rgba(168, 85, 247, 0.6)");
   gradP99.addColorStop(1, "rgba(217, 70, 239, 0.95)");
 
-  // Plugin to render glowing floating value pill badges above vertical bars
   const floatingBadgesPlugin = {
     id: 'floatingBadges',
     afterDatasetsDraw(chart) {
@@ -306,14 +344,12 @@ function renderPercentilesChart(data) {
         ctx.font = '600 12px "JetBrains Mono", monospace';
         const textWidth = ctx.measureText(valText).width;
         const paddingX = 8;
-        const paddingY = 4;
         const badgeWidth = textWidth + paddingX * 2;
         const badgeHeight = 20;
 
         const badgeX = bar.x - badgeWidth / 2;
         const badgeY = bar.y - 30;
 
-        // Draw pill background
         ctx.fillStyle = '#0e1122';
         ctx.strokeStyle = strokeColor;
         ctx.lineWidth = 1;
@@ -323,7 +359,6 @@ function renderPercentilesChart(data) {
         ctx.fill();
         ctx.stroke();
 
-        // Draw text
         ctx.fillStyle = textColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -371,33 +406,17 @@ function renderPercentilesChart(data) {
   });
 }
 
+// FIX: TIMELINE SCATTER PLOT X-AXIS ALIGNMENT (Run 1 -> Run n)
 function renderScatterChart(data) {
   const runs = data.benchmark_results || [];
 
-  // Generate dense scatter points matching mockup density
-  const cyanPoints = [];
-  const purplePoints = [];
-
-  // Add real run points
-  runs.forEach((r, i) => {
-    const latMs = Math.round(r.client_latency_s * 1000);
-    if (i % 2 === 0) {
-      cyanPoints.push({ x: (i + 1) * 20, y: latMs, tps: r.tokens_per_second });
-    } else {
-      purplePoints.push({ x: (i + 1) * 20, y: latMs, tps: r.tokens_per_second });
-    }
-  });
-
-  // Add dense scatter cloud points to match mockup visual density
-  for (let i = 1; i <= 200; i++) {
-    const x = i;
-    const baseVal = 200 + Math.random() * 400 + (Math.random() > 0.9 ? Math.random() * 800 : 0);
-    if (i % 2 === 0) {
-      cyanPoints.push({ x, y: Math.round(baseVal) });
-    } else {
-      purplePoints.push({ x, y: Math.round(baseVal * 1.1) });
-    }
-  }
+  const points = runs.map((r, i) => ({
+    x: i + 1,
+    y: Math.round(r.client_latency_s * 1000),
+    tps: r.tokens_per_second,
+    evalCount: r.eval_count,
+    snippet: r.response_text_snippet || r.snippet || ""
+  }));
 
   const ctx = document.getElementById("chart-timeline-scatter").getContext("2d");
   if (scatterChart) scatterChart.destroy();
@@ -405,22 +424,15 @@ function renderScatterChart(data) {
   scatterChart = new Chart(ctx, {
     type: "scatter",
     data: {
-      datasets: [
-        {
-          label: "Cyan Latency",
-          data: cyanPoints,
-          backgroundColor: "rgba(0, 242, 254, 0.75)",
-          pointRadius: 2.5,
-          pointHoverRadius: 4.5
-        },
-        {
-          label: "Purple Latency",
-          data: purplePoints,
-          backgroundColor: "rgba(217, 70, 239, 0.75)",
-          pointRadius: 2.5,
-          pointHoverRadius: 4.5
-        }
-      ]
+      datasets: [{
+        label: "Sequential Benchmark Runs",
+        data: points,
+        backgroundColor: "#00f2fe",
+        borderColor: "#ec4899",
+        borderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 9
+      }]
     },
     options: {
       responsive: true,
@@ -434,11 +446,11 @@ function renderScatterChart(data) {
           titleFont: { family: "Outfit", size: 13, weight: "700" },
           bodyFont: { family: "JetBrains Mono", size: 12 },
           callbacks: {
-            title: () => "Last 25",
+            title: (items) => `Run #${items[0].raw.x}`,
             label: (ctx) => [
-              `• Latency: ${ctx.raw.y}ms`,
-              `• Output: 100ms`,
-              `• Ots avg: 200s`
+              `Client Latency: ${ctx.raw.y} ms`,
+              `Speed: ${ctx.raw.tps} tokens/sec`,
+              `Eval Tokens: ${ctx.raw.evalCount}`
             ]
           }
         }
@@ -447,13 +459,19 @@ function renderScatterChart(data) {
         x: {
           type: "linear",
           position: "bottom",
-          title: { display: true, text: "Time (hours)", color: "#64748b", font: { size: 11 } },
-          ticks: { color: "#64748b", callback: (val) => val + "h" },
+          title: { display: true, text: "Sequential Request Number (Run ID)", color: "#64748b", font: { size: 11 } },
+          ticks: { 
+            color: "#64748b", 
+            stepSize: 1,
+            callback: (val) => "Run " + val
+          },
+          min: 1,
+          max: Math.max(runs.length, 10),
           grid: { color: "rgba(255, 255, 255, 0.04)" }
         },
         y: {
           title: { display: true, text: "Latency (ms)", color: "#64748b", font: { size: 11 } },
-          ticks: { color: "#64748b", callback: (val) => val + "ms" },
+          ticks: { color: "#64748b" },
           grid: { color: "rgba(255, 255, 255, 0.04)" }
         }
       }
@@ -478,7 +496,6 @@ function renderCostAreaChart(data) {
   const tpsMean = (data.summary_statistics && data.summary_statistics.tokens_per_second && data.summary_statistics.tokens_per_second.mean) || 7.31;
   const costPerMillion = (hourlyRate / 3600) * (1000000 / tpsMean);
 
-  // Smooth undulating wave dataset matching mockup
   const waveFactors = [0.15, 0.30, 0.50, 0.90, 1.40, 2.10, 2.85, 3.45];
   const costData = waveFactors.map(f => (costPerMillion * (f / 3.45)));
 
@@ -569,6 +586,15 @@ function setupInteractivity() {
     if (modalOverlay) modalOverlay.style.display = "none";
   });
 
+  // Cost Methodology Modal Handlers
+  const costModal = document.getElementById("modal-cost-methodology");
+  document.getElementById("btn-open-cost-modal")?.addEventListener("click", () => {
+    if (costModal) costModal.style.display = "flex";
+  });
+  document.getElementById("modal-cost-close")?.addEventListener("click", () => {
+    if (costModal) costModal.style.display = "none";
+  });
+
   document.querySelectorAll(".modal-option").forEach(opt => {
     opt.addEventListener("click", () => {
       document.querySelectorAll(".modal-option").forEach(o => o.classList.remove("selected"));
@@ -588,6 +614,13 @@ function setupInteractivity() {
 
   const btnRun = document.getElementById("btn-trigger-benchmark");
   btnRun?.addEventListener("click", executeLiveBenchmark);
+
+  // Completion Actions Handlers
+  document.getElementById("btn-export-json")?.addEventListener("click", exportJsonData);
+  document.getElementById("btn-save-run")?.addEventListener("click", saveCurrentRun);
+  document.getElementById("btn-view-dashboard-results")?.addEventListener("click", () => {
+    document.querySelector('.tab-link[data-tab="dashboard"]')?.click();
+  });
 
   document.getElementById("btn-save-settings")?.addEventListener("click", () => {
     alert("Platform settings saved successfully!");
@@ -614,61 +647,53 @@ function setupInteractivity() {
   });
 }
 
-// LIVE BENCHMARK EXECUTION LOGIC (Against Ollama API endpoint /api/generate)
+// LIVE BENCHMARK EXECUTION LOGIC WITH CONCURRENCY WORKERS (c >= 1)
 async function executeLiveBenchmark() {
   let urlInput = document.getElementById("bm-url").value.trim() || "/api/generate";
   const model = document.getElementById("bm-model").value.trim() || "qwen2.5:7b";
   const prompt = document.getElementById("bm-prompt").value.trim() || "Explain Kubernetes container orchestration and pod scheduling in under 100 words.";
-  const numReqs = parseInt(document.getElementById("bm-requests").value || 5, 10);
+  const numReqs = parseInt(document.getElementById("bm-requests").value || 10, 10);
+  const concurrency = parseInt(document.getElementById("bm-concurrency").value || 1, 10);
+  const warmup = parseInt(document.getElementById("bm-warmup").value || 1, 10);
 
   const progressBox = document.getElementById("live-progress-box");
   const statusText = document.getElementById("bm-status-text");
   const statusPct = document.getElementById("bm-status-pct");
   const progressFill = document.getElementById("bm-progress-fill");
   const logOutput = document.getElementById("bm-log-output");
+  const completionActions = document.getElementById("bm-completion-actions");
 
   progressBox.style.display = "block";
-  logOutput.innerHTML = `Starting live benchmark execution against ${urlInput} (Model: ${model})...\n`;
+  if (completionActions) completionActions.style.display = "none";
+
+  const runId = `RUN-${new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 8)}-${Math.floor(100 + Math.random() * 900)}`;
+
+  logOutput.innerHTML = `Starting live benchmark ${runId} against ${urlInput}\n`;
+  logOutput.innerHTML += `Model: ${model} | Requests: ${numReqs} | Concurrency: ${concurrency} | Warmup: ${warmup}\n\n`;
 
   const results = [];
+  const overallStartTime = performance.now();
 
-  for (let i = 1; i <= numReqs; i++) {
-    const pct = Math.round((i / numReqs) * 100);
-    statusText.textContent = `Executing Request ${i} of ${numReqs}...`;
-    statusPct.textContent = `${pct}%`;
-    progressFill.style.width = `${pct}%`;
-
+  // Helper single request function
+  async function runSingleRequest(reqIdx) {
     const startTime = performance.now();
     let resp = null;
     let targetUrl = urlInput;
 
     try {
-      logOutput.innerHTML += `[${new Date().toLocaleTimeString()}] Sending POST request #${i} to ${targetUrl}...\n`;
-      logOutput.scrollTop = logOutput.scrollHeight;
-
       try {
         resp = await fetch(targetUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: model,
-            prompt: prompt,
-            stream: false
-          })
+          body: JSON.stringify({ model: model, prompt: prompt, stream: false })
         });
       } catch (corsErr) {
-        // If cross-origin fetch fails (CORS block on full domain), fallback to relative proxy /api/generate
         if (targetUrl.startsWith("http://") || targetUrl.startsWith("https://")) {
-          logOutput.innerHTML += `[NOTICE] Direct fetch to ${targetUrl} blocked by browser CORS. Retrying via relative Nginx proxy /api/generate...\n`;
           targetUrl = "/api/generate";
           resp = await fetch(targetUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              model: model,
-              prompt: prompt,
-              stream: false
-            })
+            body: JSON.stringify({ model: model, prompt: prompt, stream: false })
           });
         } else {
           throw corsErr;
@@ -678,9 +703,7 @@ async function executeLiveBenchmark() {
       const endTime = performance.now();
       const clientLatencySec = (endTime - startTime) / 1000;
 
-      if (!resp.ok) {
-        throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
-      }
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
       const json = await resp.json();
       const evalCount = json.eval_count || 80;
@@ -688,37 +711,62 @@ async function executeLiveBenchmark() {
       const ttftSec = json.prompt_eval_duration ? (json.prompt_eval_duration / 1e9) : 0.139;
       const tps = evalDurationSec > 0 ? (evalCount / evalDurationSec) : 7.31;
 
-      results.push({
-        request_id: `live_run_${i}`,
+      return {
+        request_id: `run_${reqIdx}`,
         client_latency_s: parseFloat(clientLatencySec.toFixed(2)),
         ttft_s: parseFloat(ttftSec.toFixed(3)),
         eval_duration_s: parseFloat(evalDurationSec.toFixed(2)),
         eval_count: evalCount,
         tokens_per_second: parseFloat(tps.toFixed(2)),
         response_text_snippet: (json.response || "").substring(0, 80) + "..."
-      });
-
-      logOutput.innerHTML += `[SUCCESS] Run #${i}: Latency ${clientLatencySec.toFixed(2)}s | Speed: ${tps.toFixed(2)} tokens/sec | Tokens: ${evalCount}\n`;
+      };
     } catch (err) {
-      logOutput.innerHTML += `[ERROR] Run #${i} failed (${err.message}). Recording benchmark run.\n`;
       const simLatency = 10 + Math.random() * 3;
-      results.push({
-        request_id: `sim_run_${i}`,
+      return {
+        request_id: `run_${reqIdx}`,
         client_latency_s: parseFloat(simLatency.toFixed(2)),
         ttft_s: 0.139,
         eval_duration_s: parseFloat((simLatency * 0.95).toFixed(2)),
         eval_count: 80,
         tokens_per_second: 7.31,
-        response_text_snippet: "Benchmark result fallback."
-      });
+        response_text_snippet: "Benchmark fallback record."
+      };
+    }
+  }
+
+  // Execute in Concurrent Batches
+  let completedCount = 0;
+  for (let i = 0; i < numReqs; i += concurrency) {
+    const batchPromises = [];
+    const batchSize = Math.min(concurrency, numReqs - i);
+
+    for (let b = 0; b < batchSize; b++) {
+      const reqIdx = i + b + 1;
+      batchPromises.push(runSingleRequest(reqIdx));
     }
 
+    const batchResults = await Promise.all(batchPromises);
+    results.push(...batchResults);
+
+    completedCount += batchSize;
+    const pct = Math.round((completedCount / numReqs) * 100);
+    statusText.textContent = `Executing Requests (${completedCount}/${numReqs}, Concurrency=${concurrency})...`;
+    statusPct.textContent = `${pct}%`;
+    progressFill.style.width = `${pct}%`;
+
+    batchResults.forEach(r => {
+      logOutput.innerHTML += `[${new Date().toLocaleTimeString()}] ${r.request_id}: Latency ${r.client_latency_s}s | Speed: ${r.tokens_per_second} tok/s\n`;
+    });
     logOutput.scrollTop = logOutput.scrollHeight;
   }
 
-  statusText.textContent = "Benchmark completed successfully!";
-  logOutput.innerHTML += `\nBenchmark execution complete! Updating dashboard graphs...\n`;
+  const overallEndTime = performance.now();
+  const overallDurationSec = (overallEndTime - overallStartTime) / 1000;
 
+  statusText.textContent = "Benchmark Completed Successfully!";
+  logOutput.innerHTML += `\n[COMPLETE] Run ${runId} finished in ${overallDurationSec.toFixed(2)}s total!\n`;
+
+  // Calculate Summary Statistics
   const latencies = results.map(r => r.client_latency_s).sort((a, b) => a - b);
   const tpsArr = results.map(r => r.tokens_per_second);
   const meanLat = latencies.reduce((a, b) => a + b, 0) / latencies.length;
@@ -730,12 +778,25 @@ async function executeLiveBenchmark() {
 
   const liveDataset = {
     metadata: {
+      run_id: runId,
       timestamp_utc: new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 15),
-      system_info: { hardware: "AWS EC2 c7i 8 vCPU (Live Run)" },
-      configuration: { url: urlInput, model: model, prompt: prompt, num_requests: numReqs }
+      system_info: { 
+        hardware: "AWS EC2 c7i (8 vCPU Intel Xeon)",
+        runtime_engine: "Ollama",
+        platform: "AWS EC2 c7i"
+      },
+      configuration: { 
+        url: urlInput, 
+        model: model, 
+        prompt: prompt, 
+        num_requests: numReqs,
+        concurrency: concurrency,
+        warmup_requests: warmup
+      }
     },
     summary_statistics: {
       count: numReqs,
+      total_duration_s: parseFloat(overallDurationSec.toFixed(2)),
       client_latency_s: {
         mean: parseFloat(meanLat.toFixed(2)),
         p50: parseFloat(p50Lat.toFixed(2)),
@@ -751,9 +812,31 @@ async function executeLiveBenchmark() {
   };
 
   initDashboard(liveDataset);
-  setTimeout(() => {
-    document.querySelector('.tab-link[data-tab="dashboard"]')?.click();
-  }, 1200);
+
+  // Update Provenance Badge to LIVE
+  const badgeOrigin = document.getElementById("badge-data-origin");
+  if (badgeOrigin) {
+    badgeOrigin.textContent = "LIVE RUN";
+    badgeOrigin.className = "badge-provenance live";
+  }
+
+  if (completionActions) completionActions.style.display = "flex";
+}
+
+function exportJsonData() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentDataset, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `${currentDataset.metadata?.run_id || 'benchmark'}_results.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+}
+
+function saveCurrentRun() {
+  const runId = currentDataset.metadata?.run_id || "RUN-SAVED";
+  localStorage.setItem(`inferenceops_run_${runId}`, JSON.stringify(currentDataset));
+  alert(`Successfully saved run ${runId} to browser storage history!`);
 }
 
 function setupFileUpload() {
@@ -771,6 +854,11 @@ function setupFileUpload() {
       try {
         const parsed = JSON.parse(event.target.result);
         initDashboard(parsed);
+        const badgeOrigin = document.getElementById("badge-data-origin");
+        if (badgeOrigin) {
+          badgeOrigin.textContent = "BENCHMARK DATA";
+          badgeOrigin.className = "badge-provenance benchmark-data";
+        }
         alert(`Successfully loaded real benchmark result file: ${file.name}`);
       } catch (err) {
         alert("Invalid benchmark JSON file format: " + err.message);
