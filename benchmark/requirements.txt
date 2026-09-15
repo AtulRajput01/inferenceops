@@ -1,0 +1,6 @@
+# Benchmark dependency specifications
+# Note: benchmark/benchmark.py relies entirely on the Python Standard Library (zero mandatory pip dependencies).
+# Optional packages for data analysis or scripting can be added below.
+
+requests>=2.31.0
+numpy>=1.24.0

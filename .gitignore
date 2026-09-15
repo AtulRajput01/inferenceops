@@ -1,8 +1,10 @@
 # Ollama model/cache data
 ollama/*
+!ollama/.gitkeep
 
 # Benchmark generated results
 benchmark/results/*
+!benchmark/results/.gitkeep
 
 # Python
 __pycache__/

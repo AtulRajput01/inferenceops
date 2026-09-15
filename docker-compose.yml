@@ -27,4 +27,4 @@ services:
 
 networks:
   inferenceops:
-    external: true
+    driver: bridge
