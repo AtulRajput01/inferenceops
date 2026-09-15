@@ -2,6 +2,10 @@
 ollama/*
 !ollama/.gitkeep
 
+# llama.cpp model weights
+llama.cpp/models/*
+!llama.cpp/models/.gitkeep
+
 # Benchmark generated results
 benchmark/results/*
 !benchmark/results/.gitkeep

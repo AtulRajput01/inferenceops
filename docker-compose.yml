@@ -25,14 +25,42 @@ services:
       retries: 5
       start_period: 20s
 
+
+  llama-cpp:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: inferenceops-llama-cpp
+    restart: "no"
+
+    ports:
+      - "127.0.0.1:18080:8080"
+
+    volumes:
+      - ./llama.cpp/models:/models:ro
+
+    command:
+      - "-m"
+      - "/models/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8080"
+      - "-c"
+      - "32768"
+
+    networks:
+      - inferenceops
+
+
   dashboard:
     build:
       context: ./dashboard
       dockerfile: Dockerfile
     container_name: inferenceops-dashboard
     restart: unless-stopped
+
     ports:
       - "8080:80"
+
     networks:
       - inferenceops
 
