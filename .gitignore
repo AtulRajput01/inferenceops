@@ -1,0 +1,19 @@
+# Ollama model/cache data
+ollama/*
+
+# Benchmark generated results
+benchmark/results/*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
