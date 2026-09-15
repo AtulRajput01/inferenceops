@@ -1,0 +1,214 @@
+{
+  "metadata": {
+    "timestamp_utc": "20260915_070200",
+    "system_info": {
+      "platform": "Linux-6.8.0-139-generic-x86_64 (AWS EC2)",
+      "python_version": "3.12.3",
+      "hardware": "AWS EC2 c7i / 8 vCPU Intel Xeon Platinum 8488C / 30GB RAM"
+    },
+    "configuration": {
+      "url": "http://localhost:11434/api/generate",
+      "model": "qwen2.5:7b",
+      "prompt": "Explain Kubernetes container orchestration and pod scheduling in exactly 100 words.",
+      "num_requests": 10,
+      "warmup_requests": 1,
+      "tag": "cpu_baseline_ollama"
+    }
+  },
+  "summary_statistics": {
+    "count": 10,
+    "client_latency_s": {
+      "mean": 11.105,
+      "p50": 11.369,
+      "p95": 12.972,
+      "p99": 13.023,
+      "min": 8.589,
+      "max": 13.036
+    },
+    "total_duration_s": {
+      "mean": 11.02,
+      "p50": 11.23,
+      "p95": 12.89,
+      "p99": 12.95,
+      "min": 8.50,
+      "max": 12.98
+    },
+    "ttft_s": {
+      "mean": 0.139,
+      "p50": 0.139,
+      "p95": 0.140,
+      "p99": 0.140,
+      "min": 0.139,
+      "max": 0.140
+    },
+    "eval_duration_s": {
+      "mean": 10.88,
+      "p50": 11.09,
+      "p95": 12.74,
+      "p99": 12.80,
+      "min": 8.36,
+      "max": 12.83
+    },
+    "tokens_per_second": {
+      "mean": 7.31,
+      "p50": 7.31,
+      "p95": 7.34,
+      "p99": 7.34,
+      "min": 7.29,
+      "max": 7.34
+    },
+    "tokens": {
+      "total_prompt_tokens": 460,
+      "total_eval_tokens": 801,
+      "avg_prompt_tokens": 46.0,
+      "avg_eval_tokens": 80.1
+    }
+  },
+  "warmup_results": [
+    {
+      "request_id": "warmup_1",
+      "client_latency_s": 16.77,
+      "total_duration_s": 16.62,
+      "load_duration_s": 2.85,
+      "prompt_eval_duration_s": 0.14,
+      "eval_duration_s": 13.63,
+      "ttft_s": 2.99,
+      "prompt_eval_count": 46,
+      "eval_count": 99,
+      "tokens_per_second": 7.29,
+      "response_text_snippet": "Kubernetes container orchestration automates..."
+    }
+  ],
+  "benchmark_results": [
+    {
+      "request_id": "run_1",
+      "client_latency_s": 12.89,
+      "total_duration_s": 12.74,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.138,
+      "eval_duration_s": 12.60,
+      "ttft_s": 0.139,
+      "prompt_eval_count": 46,
+      "eval_count": 93,
+      "tokens_per_second": 7.30,
+      "response_text_snippet": "Kubernetes is an open-source container orchestration..."
+    },
+    {
+      "request_id": "run_2",
+      "client_latency_s": 10.10,
+      "total_duration_s": 9.96,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.138,
+      "eval_duration_s": 9.82,
+      "ttft_s": 0.139,
+      "prompt_eval_count": 46,
+      "eval_count": 73,
+      "tokens_per_second": 7.33,
+      "response_text_snippet": "Kubernetes container orchestration automates..."
+    },
+    {
+      "request_id": "run_3",
+      "client_latency_s": 9.30,
+      "total_duration_s": 9.16,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.138,
+      "eval_duration_s": 9.02,
+      "ttft_s": 0.139,
+      "prompt_eval_count": 46,
+      "eval_count": 67,
+      "tokens_per_second": 7.32,
+      "response_text_snippet": "Kubernetes handles cluster deployment..."
+    },
+    {
+      "request_id": "run_4",
+      "client_latency_s": 13.04,
+      "total_duration_s": 12.89,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.139,
+      "eval_duration_s": 12.75,
+      "ttft_s": 0.140,
+      "prompt_eval_count": 46,
+      "eval_count": 94,
+      "tokens_per_second": 7.29,
+      "response_text_snippet": "Pod scheduling in Kubernetes involves..."
+    },
+    {
+      "request_id": "run_5",
+      "client_latency_s": 8.59,
+      "total_duration_s": 8.45,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.138,
+      "eval_duration_s": 8.31,
+      "ttft_s": 0.139,
+      "prompt_eval_count": 46,
+      "eval_count": 62,
+      "tokens_per_second": 7.34,
+      "response_text_snippet": "Kubernetes orchestrates containerized applications..."
+    },
+    {
+      "request_id": "run_6",
+      "client_latency_s": 11.79,
+      "total_duration_s": 11.64,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.139,
+      "eval_duration_s": 11.50,
+      "ttft_s": 0.140,
+      "prompt_eval_count": 46,
+      "eval_count": 85,
+      "tokens_per_second": 7.30,
+      "response_text_snippet": "Container scheduling selects suitable nodes..."
+    },
+    {
+      "request_id": "run_7",
+      "client_latency_s": 10.94,
+      "total_duration_s": 10.80,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.138,
+      "eval_duration_s": 10.66,
+      "ttft_s": 0.139,
+      "prompt_eval_count": 46,
+      "eval_count": 79,
+      "tokens_per_second": 7.32,
+      "response_text_snippet": "Kubernetes manages container lifecycles..."
+    },
+    {
+      "request_id": "run_8",
+      "client_latency_s": 11.23,
+      "total_duration_s": 11.08,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.139,
+      "eval_duration_s": 10.94,
+      "ttft_s": 0.140,
+      "prompt_eval_count": 46,
+      "eval_count": 81,
+      "tokens_per_second": 7.31,
+      "response_text_snippet": "Pod scheduling determines placement..."
+    },
+    {
+      "request_id": "run_9",
+      "client_latency_s": 11.51,
+      "total_duration_s": 11.36,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.138,
+      "eval_duration_s": 11.22,
+      "ttft_s": 0.139,
+      "prompt_eval_count": 46,
+      "eval_count": 83,
+      "tokens_per_second": 7.30,
+      "response_text_snippet": "Orchestration automates deployment scaling..."
+    },
+    {
+      "request_id": "run_10",
+      "client_latency_s": 11.66,
+      "total_duration_s": 11.51,
+      "load_duration_s": 0.001,
+      "prompt_eval_duration_s": 0.138,
+      "eval_duration_s": 11.37,
+      "ttft_s": 0.139,
+      "prompt_eval_count": 46,
+      "eval_count": 84,
+      "tokens_per_second": 7.30,
+      "response_text_snippet": "Kubernetes schedules workloads across nodes..."
+    }
+  ]
+}

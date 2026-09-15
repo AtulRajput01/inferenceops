@@ -68,11 +68,28 @@ inferenceops/
 │   ├── results/           # Timestamped JSON output logs (gitignored)
 │   ├── benchmark.py       # Python benchmark script for sequential/batch performance testing
 │   └── requirements.txt   # Python dependencies
+├── dashboard/             # Interactive web dashboard UI & visualizer
+│   ├── index.html         # Dashboard HTML application
+│   ├── styles.css         # Dark glassmorphism styles & design system
+│   └── app.js             # Chart.js visualization logic & JSON file parser
 ├── ollama/                # Persistent volume storage for Ollama model weights (gitignored)
 ├── docker-compose.yml     # Container service orchestration
 ├── .gitignore             # Git exclusion policies
 └── README.md              # Project master documentation
 ```
+
+---
+
+## 💻 Interactive Dashboard UI
+
+We provide an interactive, dark-mode glassmorphism dashboard UI (`dashboard/`) to visually analyze latency distributions, TTFT, throughput stability trends, and infrastructure serving cost economics.
+
+### Launch Dashboard
+Run Python's built-in HTTP server to serve the dashboard:
+```bash
+python3 -m http.server 8080 --directory dashboard
+```
+Then navigate to `http://localhost:8080` in your web browser. You can load any benchmark JSON result file using the **Load JSON Result** button or drag-and-drop.
 
 ---
 
