@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>InferenceOps — LLM Inference Benchmarking Platform</title>
-  <meta name="description" content="InferenceOps LLM Inference Benchmarking Platform - Performance, Latency Percentiles & Cost Optimization Dashboard">
+  <meta name="description" content="InferenceOps LLM Inference Benchmarking Platform - Real Performance, Latency Percentiles & Cost Optimization Dashboard">
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Core Dashboard Stylesheet -->
-  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v2">
+  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v3">
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,7 +23,7 @@
     
     <!-- Left Navigation Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-logo">
+      <div class="sidebar-logo" id="btn-sidebar-home" title="InferenceOps Home">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#logo-grad-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M2 17L12 22L22 17" stroke="url(#logo-grad-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -46,31 +46,31 @@
       </div>
 
       <nav class="sidebar-nav">
-        <button class="nav-item active" title="Dashboard">
+        <button class="nav-item active" data-tab="dashboard" title="Dashboard">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
         </button>
-        <button class="nav-item" title="Benchmarks">
+        <button class="nav-item" data-tab="benchmarks" title="Run Benchmarks">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
         </button>
-        <button class="nav-item" title="Topology">
+        <button class="nav-item" data-tab="models" title="Models Specs">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><path d="M12 8v4M7.5 17.5l3-3.5M16.5 17.5l-3-3.5"/></svg>
         </button>
-        <button class="nav-item" title="Analytics">
+        <button class="nav-item" data-tab="monitoring" title="Infrastructure Monitoring">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M18 9l-5 5-4-4-3 3"/></svg>
         </button>
-        <button class="nav-item" title="Logs">
+        <button class="nav-item" data-tab="logs" title="Raw Results & Logs">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V3h13l5 5z"/><path d="M14 3v5h5"/></svg>
         </button>
-        <button class="nav-item" title="Settings">
+        <button class="nav-item" data-tab="settings" title="Settings">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
         </button>
       </nav>
 
       <div class="sidebar-bottom">
-        <button class="nav-item" title="Settings Bottom">
+        <button class="nav-item" data-tab="settings" title="Settings Bottom">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
         </button>
-        <button class="nav-item" title="Logout">
+        <button class="nav-item" id="btn-logout" title="Logout">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
         </button>
       </div>
@@ -101,19 +101,21 @@
           </div>
           
           <nav class="topbar-tabs">
-            <a href="#" class="tab-link active">Dashboard</a>
-            <a href="#" class="tab-link">Benchmarks</a>
-            <a href="#" class="tab-link">Models</a>
-            <a href="#" class="tab-link">Monitoring</a>
-            <a href="#" class="tab-link">Settings</a>
+            <button class="tab-link active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-link" data-tab="benchmarks">Benchmarks</button>
+            <button class="tab-link" data-tab="models">Models</button>
+            <button class="tab-link" data-tab="monitoring">Monitoring</button>
+            <button class="tab-link" data-tab="settings">Settings</button>
           </nav>
         </div>
 
         <div class="topbar-right">
           <div class="search-box">
-            <input type="text" placeholder="Search">
+            <input type="text" id="search-input" placeholder="Search metrics...">
             <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
           </div>
+
+          <button class="btn-run-live" id="btn-open-benchmark-modal">⚡ Live Benchmark</button>
 
           <button class="upload-trigger" id="upload-btn" title="Load Benchmark JSON Log">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
@@ -123,17 +125,16 @@
 
           <div class="user-admin">Admin</div>
 
-          <div class="user-profile">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Pavel K." class="avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-            <div class="avatar" style="display:none;">PK</div>
-            <span class="user-name">Pavel K.</span>
+          <div class="user-profile" id="user-menu-btn">
+            <div class="avatar">AR</div>
+            <span class="user-name">Atul R.</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
           </div>
         </div>
       </header>
 
-      <!-- Dashboard Body Content -->
-      <main class="dashboard-body">
+      <!-- TAB 1: DASHBOARD VIEW -->
+      <main class="dashboard-body view-section active" id="view-dashboard">
         
         <!-- Row 1: Hero Metric Cards & Selector Stack -->
         <div class="hero-row">
@@ -148,7 +149,7 @@
                 <span class="hero-value" id="kpi-tps">7.31</span>
                 <span class="hero-unit">tokens/sec</span>
               </div>
-              <div class="hero-sub" id="kpi-tps-sub">Large</div>
+              <div class="hero-sub" id="kpi-tps-sub">Mean evaluation throughput</div>
             </div>
             <div class="sparkline-wrapper">
               <canvas id="sparkline-tps"></canvas>
@@ -164,7 +165,7 @@
               <div class="hero-value-wrapper">
                 <span class="hero-value" id="kpi-ttft">0.139s</span>
               </div>
-              <div class="hero-sub">median</div>
+              <div class="hero-sub">Time To First Token (P50)</div>
             </div>
             <div class="sparkline-wrapper">
               <canvas id="sparkline-ttft"></canvas>
@@ -178,9 +179,9 @@
             </div>
             <div class="hero-card-body">
               <div class="hero-value-wrapper">
-                <span class="hero-value" id="kpi-p99">1.25s</span>
+                <span class="hero-value" id="kpi-p99">13.02s</span>
               </div>
-              <div class="hero-sub">median</div>
+              <div class="hero-sub">99th percentile total latency</div>
             </div>
             <div class="sparkline-wrapper">
               <canvas id="sparkline-p99"></canvas>
@@ -189,26 +190,26 @@
 
           <!-- Card 4: Selector Stack Card -->
           <div class="selector-stack-card">
-            <div class="selector-item">
+            <div class="selector-item" id="sel-model-trigger">
               <div class="selector-info">
                 <span class="selector-label">Model</span>
-                <span class="selector-val" id="spec-model">Llama 2-70b-chat</span>
+                <span class="selector-val" id="spec-model">qwen2.5:7b</span>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
             </div>
 
-            <div class="selector-item">
+            <div class="selector-item" id="sel-framework-trigger">
               <div class="selector-info">
-                <span class="selector-label">Framework</span>
-                <span class="selector-val" id="spec-framework">Hugging Face TGI</span>
+                <span class="selector-label">Endpoint / Framework</span>
+                <span class="selector-val" id="spec-framework">http://inference.atulrajput.space/api/generate</span>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
             </div>
 
-            <div class="selector-item">
+            <div class="selector-item" id="sel-hardware-trigger">
               <div class="selector-info">
                 <span class="selector-label">Hardware</span>
-                <span class="selector-val" id="spec-hardware">A100x8 NVLink</span>
+                <span class="selector-val" id="spec-hardware">AWS EC2 c7i 8 vCPU</span>
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
             </div>
@@ -226,8 +227,9 @@
                 <h3 class="panel-title">
                   Latency Percentiles (<span class="legend-p50">P50</span> <span class="legend-p95">P95</span> <span class="legend-p99">P99</span>)
                 </h3>
+                <p class="panel-subtitle">Real duration distribution across sequential benchmark runs</p>
               </div>
-              <button class="panel-menu-btn" title="More options">
+              <button class="panel-menu-btn" id="btn-export-percentiles" title="Export Percentile Data">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
               </button>
             </div>
@@ -241,12 +243,13 @@
             <div class="panel-header">
               <div class="panel-header-left">
                 <h3 class="panel-title">Per-Request Latency Timeline</h3>
-                <p class="panel-subtitle" id="scatter-sub">Llama 2-70b , 30s avg</p>
+                <p class="panel-subtitle" id="scatter-sub">qwen2.5:7b , real sequential request logs</p>
               </div>
-              <div class="time-filter-dropdown">
-                <span>last 3 hours</span>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-              </div>
+              <select class="time-filter-dropdown" id="filter-timeline-range">
+                <option value="all">All Benchmark Runs</option>
+                <option value="last5">Last 5 Runs</option>
+                <option value="last10" selected>Last 10 Runs</option>
+              </select>
             </div>
             <div class="chart-box">
               <canvas id="chart-timeline-scatter"></canvas>
@@ -261,7 +264,8 @@
           <!-- Panel 3: CPU Utilization -->
           <div class="card-panel">
             <div class="panel-header">
-              <h3 class="panel-title">CPU Utilization</h3>
+              <h3 class="panel-title">CPU & Engine Utilization</h3>
+              <p class="panel-subtitle">AWS EC2 Intel Xeon 8 vCPU core activity</p>
             </div>
             
             <div class="cpu-content-layout">
@@ -284,12 +288,12 @@
 
               <div class="cpu-meta-info">
                 <div class="cpu-meta-group">
-                  <span class="cpu-stat-label">Active cores</span>
-                  <div class="cpu-stat-val" id="cpu-cores">48/64</div>
+                  <span class="cpu-stat-label">Active Cores / Threads</span>
+                  <div class="cpu-stat-val" id="cpu-cores">8/8 vCPU</div>
                 </div>
 
                 <div class="cpu-meta-group">
-                  <span class="cpu-stat-label">Load</span>
+                  <span class="cpu-stat-label">Load Distribution</span>
                   <div class="equalizer-bars" id="equalizer-bars">
                     <!-- Equalizer bars populated dynamically -->
                   </div>
@@ -301,15 +305,18 @@
           <!-- Panel 4: Cost per Million Tokens -->
           <div class="card-panel">
             <div class="panel-header cost-panel-header">
-              <h3 class="panel-title">Cost per Million Tokens</h3>
+              <div>
+                <h3 class="panel-title">Infrastructure Serving Cost</h3>
+                <p class="panel-subtitle">Estimated economics on AWS EC2 On-Demand rate ($0.384/hr)</p>
+              </div>
               <div class="cost-legend">
-                <span class="legend-item"><span class="dot dot-cyan"></span>Input <strong id="cost-input">$1.15</strong></span>
-                <span class="legend-item"><span class="dot dot-pink"></span>Output <strong id="cost-output">$2.30</strong></span>
+                <span class="legend-item"><span class="dot dot-cyan"></span>Input <strong id="cost-input">$4.37</strong></span>
+                <span class="legend-item"><span class="dot dot-pink"></span>Output <strong id="cost-output">$10.21</strong></span>
               </div>
             </div>
 
             <div class="cost-hero-value">
-              <span class="cost-amount" id="cost-1m">$3.45</span>
+              <span class="cost-amount" id="cost-1m">$14.58</span>
               <span class="cost-unit">/ 1M Tokens</span>
             </div>
 
@@ -322,10 +329,167 @@
 
       </main>
 
+      <!-- TAB 2: BENCHMARKS VIEW -->
+      <section class="dashboard-body view-section" id="view-benchmarks" style="display:none;">
+        <div class="card-panel">
+          <div class="panel-header">
+            <div>
+              <h2 class="panel-title" style="font-size: 20px;">Live Inference Benchmark Suite</h2>
+              <p class="panel-subtitle">Execute benchmark requests directly against target inference endpoints</p>
+            </div>
+            <button class="btn-run-live" id="btn-trigger-benchmark">🚀 Run Benchmark Suite</button>
+          </div>
+
+          <div class="benchmark-form-grid">
+            <div class="form-group">
+              <label>Target API Endpoint URL</label>
+              <input type="text" id="bm-url" value="http://inference.atulrajput.space/api/generate" placeholder="http://inference.atulrajput.space/api/generate">
+            </div>
+
+            <div class="form-group">
+              <label>Model Tag</label>
+              <input type="text" id="bm-model" value="qwen2.5:7b" placeholder="qwen2.5:7b">
+            </div>
+
+            <div class="form-group">
+              <label>Number of Requests</label>
+              <input type="number" id="bm-requests" value="5" min="1" max="50">
+            </div>
+
+            <div class="form-group full-width">
+              <label>Benchmark Prompt</label>
+              <textarea id="bm-prompt" rows="3">Explain Kubernetes container orchestration and pod scheduling in under 100 words.</textarea>
+            </div>
+          </div>
+
+          <div class="live-progress-container" id="live-progress-box" style="display:none;">
+            <div class="progress-bar-label">
+              <span id="bm-status-text">Executing Request 1 of 5...</span>
+              <span id="bm-status-pct">20%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="bm-progress-fill" style="width: 20%;"></div>
+            </div>
+            <div class="live-log-output" id="bm-log-output">
+              Initializing benchmark against http://inference.atulrajput.space/api/generate...
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: MODELS VIEW -->
+      <section class="dashboard-body view-section" id="view-models" style="display:none;">
+        <div class="card-panel">
+          <h2 class="panel-title" style="font-size: 20px; margin-bottom: 16px;">Deployed LLM Serving Models</h2>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Model Name</th>
+                <th>Quantization</th>
+                <th>Parameter Size</th>
+                <th>Architecture</th>
+                <th>Default Endpoint</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>qwen2.5:7b</strong></td>
+                <td>Q4_K_M (4-bit)</td>
+                <td>7.61B</td>
+                <td>Qwen2 Architecture</td>
+                <td><code>http://inference.atulrajput.space/api/generate</code></td>
+                <td><span class="status-badge active">Online / Active</span></td>
+              </tr>
+              <tr>
+                <td><strong>Llama 2-70b-chat</strong></td>
+                <td>Q4_0</td>
+                <td>70B</td>
+                <td>Llama 2</td>
+                <td><code>http://inference.atulrajput.space/api/generate</code></td>
+                <td><span class="status-badge standby">Standby / Remote</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 4: MONITORING VIEW -->
+      <section class="dashboard-body view-section" id="view-monitoring" style="display:none;">
+        <div class="card-panel">
+          <h2 class="panel-title" style="font-size: 20px; margin-bottom: 16px;">Infrastructure & Serving Runtime Health</h2>
+          <div class="grid-row-2">
+            <div class="info-card">
+              <h4>Compute Node</h4>
+              <p>AWS EC2 instance in <code>ap-south-1</code> (Mumbai)</p>
+              <p><strong>CPU:</strong> Intel Xeon Platinum 8488C (8 vCPUs / 4 Cores)</p>
+              <p><strong>Extensions:</strong> AVX-512, AMX BF16, AMX INT8</p>
+              <p><strong>RAM:</strong> 30 GiB RAM + 8 GiB Swap</p>
+            </div>
+            <div class="info-card">
+              <h4>Container Stack</h4>
+              <p><strong>Engine:</strong> Docker 29.8.0 / Docker Compose</p>
+              <p><strong>Serving Container:</strong> <code>inferenceops-ollama</code> (:11434)</p>
+              <p><strong>Dashboard Container:</strong> <code>inferenceops-dashboard</code> (:8080)</p>
+              <p><strong>Nginx Status:</strong> Active / Healthy</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: LOGS & SETTINGS VIEW -->
+      <section class="dashboard-body view-section" id="view-logs" style="display:none;">
+        <div class="card-panel">
+          <h2 class="panel-title" style="font-size: 20px; margin-bottom: 16px;">Raw Benchmark Results JSON</h2>
+          <pre class="json-viewer" id="raw-json-viewer"></pre>
+        </div>
+      </section>
+
+      <section class="dashboard-body view-section" id="view-settings" style="display:none;">
+        <div class="card-panel">
+          <h2 class="panel-title" style="font-size: 20px; margin-bottom: 16px;">Platform Settings & Endpoints</h2>
+          <div class="form-group">
+            <label>Default Inference Endpoint URL</label>
+            <input type="text" id="setting-endpoint" value="http://inference.atulrajput.space/api/generate">
+          </div>
+          <div class="form-group">
+            <label>Hardware Hourly Cost Rate ($/hr)</label>
+            <input type="number" id="setting-rate" value="0.384" step="0.01">
+          </div>
+          <button class="btn-run-live" id="btn-save-settings">Save Settings</button>
+        </div>
+      </section>
+
     </div>
 
   </div>
 
-  <script src="app.js?v=20260915_v2"></script>
+  <!-- Interactive Model Selector Modal -->
+  <div class="modal-overlay" id="modal-selector" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Model & Serving Endpoint</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-option selected" data-model="qwen2.5:7b" data-url="http://inference.atulrajput.space/api/generate">
+          <div>
+            <strong>qwen2.5:7b (AWS EC2 CPU Baseline)</strong>
+            <p>Target: http://inference.atulrajput.space/api/generate</p>
+          </div>
+          <span class="badge">Active Real Data</span>
+        </div>
+        <div class="modal-option" data-model="Llama 2-70b-chat" data-url="http://inference.atulrajput.space/api/generate">
+          <div>
+            <strong>Llama 2-70b-chat (GPU Target)</strong>
+            <p>Target: http://inference.atulrajput.space/api/generate</p>
+          </div>
+          <span class="badge">Remote</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=20260915_v3"></script>
 </body>
 </html>
