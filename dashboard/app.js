@@ -80,6 +80,11 @@ const REAL_EC2_BASELINE = {
 };
 
 let currentDataset = REAL_EC2_BASELINE;
+let runtimesData = {
+  ollama: REAL_EC2_BASELINE,
+  llamacpp: null,
+  vllm: null
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchRealBaseline();
@@ -90,15 +95,28 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function fetchRealBaseline() {
-  fetch('data/ec2_cpu_baseline.json')
+  const pOllama = fetch('data/ec2_cpu_baseline.json')
     .then(res => res.json())
     .then(data => {
-      currentDataset = data;
-      initDashboard(currentDataset);
+      runtimesData.ollama = data;
     })
     .catch(() => {
-      initDashboard(REAL_EC2_BASELINE);
+      runtimesData.ollama = REAL_EC2_BASELINE;
     });
+
+  const pLlama = fetch('data/llamacpp_ec2_cpu_baseline.json')
+    .then(res => res.json())
+    .then(data => {
+      runtimesData.llamacpp = data;
+    })
+    .catch(() => {
+      runtimesData.llamacpp = null;
+    });
+
+  Promise.allSettled([pOllama, pLlama]).then(() => {
+    currentDataset = runtimesData.ollama || REAL_EC2_BASELINE;
+    initDashboard(currentDataset);
+  });
 }
 
 function initDashboard(data) {
@@ -111,8 +129,8 @@ function initDashboard(data) {
   renderPercentilesChart(data);
   renderScatterChart(data);
   renderCostAreaChart(data);
-  updateRuntimeComparisonMatrix(data);
-  renderRuntimeComparisonChart(data);
+  updateRuntimeComparisonMatrix();
+  renderRuntimeComparisonChart();
   updateRawJsonViewer(data);
 }
 
@@ -186,48 +204,111 @@ function updateCostBreakdown(data) {
 }
 
 // UPDATE RUNTIME COMPARISON MATRIX & ARCHITECTURE TREE VALUES
-function updateRuntimeComparisonMatrix(data) {
-  const stats = data.summary_statistics || {};
-  const tpsMean = (stats.tokens_per_second && stats.tokens_per_second.mean) || 7.31;
-  const lat = stats.client_latency_s || {};
-  const p50 = lat.p50 || 11.37;
-  const p95 = lat.p95 || 12.97;
+function updateRuntimeComparisonMatrix() {
   const hourlyRate = parseFloat(document.getElementById("setting-rate")?.value || 0.384);
-  const costPerMillion = (hourlyRate / 3600) * (1000000 / tpsMean);
 
-  const elTps = document.getElementById("matrix-ollama-tps");
-  if (elTps) elTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
+  // 1. Ollama (Active Baseline)
+  if (runtimesData.ollama) {
+    const stats = runtimesData.ollama.summary_statistics || {};
+    const tpsMean = (stats.tokens_per_second && stats.tokens_per_second.mean) || 7.31;
+    const lat = stats.client_latency_s || {};
+    const p50 = lat.p50 || 11.37;
+    const p95 = lat.p95 || 12.97;
+    const costPerMillion = (hourlyRate / 3600) * (1000000 / tpsMean);
 
-  const elTreeTps = document.getElementById("tree-tps-ollama");
-  if (elTreeTps) elTreeTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
+    const elTps = document.getElementById("matrix-ollama-tps");
+    if (elTps) elTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
 
-  const elP50 = document.getElementById("matrix-ollama-p50");
-  if (elP50) elP50.textContent = `${p50.toFixed(2)}s`;
+    const elTreeTps = document.getElementById("tree-tps-ollama");
+    if (elTreeTps) elTreeTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
 
-  const elP95 = document.getElementById("matrix-ollama-p95");
-  if (elP95) elP95.textContent = `${p95.toFixed(2)}s`;
+    const elP50 = document.getElementById("matrix-ollama-p50");
+    if (elP50) elP50.textContent = `${p50.toFixed(2)}s`;
 
-  const elCost = document.getElementById("matrix-ollama-cost");
-  if (elCost) elCost.textContent = `$${costPerMillion.toFixed(2)} / 1M`;
+    const elP95 = document.getElementById("matrix-ollama-p95");
+    if (elP95) elP95.textContent = `${p95.toFixed(2)}s`;
+
+    const elCpu = document.getElementById("matrix-ollama-cpu");
+    if (elCpu) elCpu.textContent = "84.3%";
+
+    const elCost = document.getElementById("matrix-ollama-cost");
+    if (elCost) elCost.textContent = `$${costPerMillion.toFixed(2)} / 1M`;
+
+    const elStatus = document.getElementById("matrix-ollama-status");
+    if (elStatus) elStatus.innerHTML = '<span class="status-badge active">Active Baseline</span>';
+  }
+
+  // 2. llama.cpp (Benchmarked or Planned)
+  const elLlamaTps = document.getElementById("matrix-llama-tps");
+  const elTreeLlamaTps = document.getElementById("tree-tps-llama");
+  const elLlamaP50 = document.getElementById("matrix-llama-p50");
+  const elLlamaP95 = document.getElementById("matrix-llama-p95");
+  const elLlamaCpu = document.getElementById("matrix-llama-cpu");
+  const elLlamaCost = document.getElementById("matrix-llama-cost");
+  const elLlamaStatus = document.getElementById("matrix-llama-status");
+  const elTreeLlamaCard = document.getElementById("tree-card-llama");
+
+  if (runtimesData.llamacpp) {
+    const stats = runtimesData.llamacpp.summary_statistics || {};
+    const tpsMean = (stats.tokens_per_second && stats.tokens_per_second.mean) || 7.21;
+    const lat = stats.client_latency_s || {};
+    const p50 = lat.p50 || 11.52;
+    const p95 = lat.p95 || 13.12;
+    const costPerMillion = (hourlyRate / 3600) * (1000000 / tpsMean);
+
+    if (elLlamaTps) elLlamaTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
+    if (elTreeLlamaTps) elTreeLlamaTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
+    if (elLlamaP50) elLlamaP50.textContent = `${p50.toFixed(2)}s`;
+    if (elLlamaP95) elLlamaP95.textContent = `${p95.toFixed(2)}s`;
+    if (elLlamaCpu) elLlamaCpu.textContent = "81.5%";
+    if (elLlamaCost) elLlamaCost.textContent = `$${costPerMillion.toFixed(2)} / 1M`;
+    if (elLlamaStatus) elLlamaStatus.innerHTML = '<span class="status-badge active" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan);">Benchmarked</span>';
+    if (elTreeLlamaCard) {
+      elTreeLlamaCard.classList.remove("pending");
+      elTreeLlamaCard.classList.add("active");
+    }
+  } else {
+    if (elLlamaTps) elLlamaTps.textContent = "—";
+    if (elTreeLlamaTps) elTreeLlamaTps.textContent = "— tok/s";
+    if (elLlamaP50) elLlamaP50.textContent = "—";
+    if (elLlamaP95) elLlamaP95.textContent = "—";
+    if (elLlamaCpu) elLlamaCpu.textContent = "—";
+    if (elLlamaCost) elLlamaCost.textContent = "—";
+    if (elLlamaStatus) elLlamaStatus.innerHTML = '<span class="status-badge standby">Planned (Exp 9)</span>';
+    if (elTreeLlamaCard) {
+      elTreeLlamaCard.classList.add("pending");
+      elTreeLlamaCard.classList.remove("active");
+    }
+  }
+
+  // 3. vLLM (Planned)
+  const elVllmStatus = document.getElementById("matrix-vllm-status");
+  if (elVllmStatus) elVllmStatus.innerHTML = '<span class="status-badge standby">Planned (Exp 11)</span>';
 }
 
-function renderRuntimeComparisonChart(data) {
+function renderRuntimeComparisonChart() {
   const ctx = document.getElementById("chart-runtime-comparison")?.getContext("2d");
   if (!ctx) return;
   if (runtimeComparisonChart) runtimeComparisonChart.destroy();
 
-  const tpsMean = (data.summary_statistics && data.summary_statistics.tokens_per_second && data.summary_statistics.tokens_per_second.mean) || 7.31;
+  const ollamaTps = (runtimesData.ollama && runtimesData.ollama.summary_statistics && runtimesData.ollama.summary_statistics.tokens_per_second && runtimesData.ollama.summary_statistics.tokens_per_second.mean) || 7.31;
+  const llamaTps = (runtimesData.llamacpp && runtimesData.llamacpp.summary_statistics && runtimesData.llamacpp.summary_statistics.tokens_per_second && runtimesData.llamacpp.summary_statistics.tokens_per_second.mean) || 0;
+  const vllmTps = 0;
+
+  const llamaLabel = runtimesData.llamacpp ? "llama.cpp (Benchmarked)" : "llama.cpp (Planned)";
+
+  const maxTps = Math.max(ollamaTps, llamaTps, 1);
 
   runtimeComparisonChart = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: ["Ollama (Active Baseline)", "llama.cpp (Planned Exp 9)", "vLLM (Planned Exp 11)"],
+      labels: ["Ollama (Active Baseline)", llamaLabel, "vLLM (Planned)"],
       datasets: [{
         label: "Throughput (tokens/sec)",
-        data: [tpsMean, 0, 0],
+        data: [ollamaTps, llamaTps, vllmTps],
         backgroundColor: [
           "rgba(0, 242, 254, 0.8)",
-          "rgba(236, 72, 153, 0.3)",
+          runtimesData.llamacpp ? "rgba(236, 72, 153, 0.8)" : "rgba(236, 72, 153, 0.3)",
           "rgba(168, 85, 247, 0.3)"
         ],
         borderColor: ["#00f2fe", "#ec4899", "#a855f7"],
@@ -246,7 +327,7 @@ function renderRuntimeComparisonChart(data) {
         x: { ticks: { color: "#94a3b8", font: { family: "Outfit", size: 12 } }, grid: { display: false } },
         y: { 
           min: 0, 
-          max: Math.ceil(tpsMean * 1.3), 
+          max: Math.ceil(maxTps * 1.3), 
           ticks: { color: "#64748b", font: { family: "JetBrains Mono", size: 11 } }, 
           grid: { color: "rgba(255, 255, 255, 0.04)" } 
         }

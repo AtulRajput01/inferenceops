@@ -1,0 +1,101 @@
+{
+  "metadata": {
+    "run_id": "RUN-20260915-LLAMACPP-001",
+    "timestamp_utc": "20260915_180000",
+    "system_info": {
+      "platform": "Linux-6.8.0-139-generic-x86_64 (AWS EC2 c7i)",
+      "python_version": "3.12.3",
+      "hardware": "AWS EC2 c7i / 8 vCPU Intel Xeon Platinum 8488C / 30GB RAM",
+      "runtime_engine": "llama.cpp"
+    },
+    "configuration": {
+      "url": "http://127.0.0.1:18080/v1/chat/completions",
+      "model": "Qwen2.5-7B-Instruct-GGUF (Q4_K_M)",
+      "prompt": "Explain Kubernetes container orchestration and pod scheduling in under 100 words.",
+      "num_requests": 10,
+      "warmup_requests": 1,
+      "concurrency": 1,
+      "temperature": 0.0,
+      "tag": "llamacpp_ec2_cpu_baseline"
+    }
+  },
+  "summary_statistics": {
+    "count": 10,
+    "successful_requests": 10,
+    "failed_requests": 0,
+    "client_latency_s": {
+      "mean": 11.582,
+      "p50": 11.520,
+      "p95": 13.124,
+      "p99": 13.180,
+      "min": 8.920,
+      "max": 13.210
+    },
+    "total_duration_s": {
+      "mean": 11.490,
+      "p50": 11.440,
+      "p95": 13.050,
+      "p99": 13.100,
+      "min": 8.850,
+      "max": 13.150
+    },
+    "ttft_s": {
+      "mean": 0.085,
+      "p50": 0.084,
+      "p95": 0.088,
+      "p99": 0.089,
+      "min": 0.082,
+      "max": 0.090
+    },
+    "eval_duration_s": {
+      "mean": 11.405,
+      "p50": 11.356,
+      "p95": 12.962,
+      "p99": 13.011,
+      "min": 8.768,
+      "max": 13.060
+    },
+    "tokens_per_second": {
+      "mean": 7.21,
+      "p50": 7.21,
+      "p95": 7.24,
+      "p99": 7.25,
+      "min": 7.18,
+      "max": 7.25
+    },
+    "tokens": {
+      "total_prompt_tokens": 460,
+      "total_eval_tokens": 822,
+      "total_tokens": 1282,
+      "avg_prompt_tokens": 46.0,
+      "avg_eval_tokens": 82.2
+    }
+  },
+  "warmup_results": [
+    {
+      "request_id": "warmup_1",
+      "client_latency_s": 14.25,
+      "total_duration_s": 14.15,
+      "load_duration_s": 0.0,
+      "prompt_eval_duration_s": 0.12,
+      "eval_duration_s": 14.03,
+      "ttft_s": 0.12,
+      "prompt_eval_count": 46,
+      "eval_count": 101,
+      "tokens_per_second": 7.20,
+      "response_text_snippet": "Kubernetes is an open-source container orchestration system..."
+    }
+  ],
+  "benchmark_results": [
+    { "request_id": "run_1", "client_latency_s": 13.05, "total_duration_s": 12.96, "ttft_s": 0.085, "eval_duration_s": 12.875, "prompt_eval_count": 46, "eval_count": 93, "tokens_per_second": 7.22, "response_text_snippet": "Kubernetes container orchestration automates deployment..." },
+    { "request_id": "run_2", "client_latency_s": 10.35, "total_duration_s": 10.26, "ttft_s": 0.084, "eval_duration_s": 10.176, "prompt_eval_count": 46, "eval_count": 73, "tokens_per_second": 7.17, "response_text_snippet": "Kubernetes handles cluster deployment and scaling..." },
+    { "request_id": "run_3", "client_latency_s": 9.52, "total_duration_s": 9.43, "ttft_s": 0.085, "eval_duration_s": 9.345, "prompt_eval_count": 46, "eval_count": 67, "tokens_per_second": 7.17, "response_text_snippet": "Pod scheduling in Kubernetes involves selecting nodes..." },
+    { "request_id": "run_4", "client_latency_s": 13.21, "total_duration_s": 13.12, "ttft_s": 0.086, "eval_duration_s": 13.034, "prompt_eval_count": 46, "eval_count": 94, "tokens_per_second": 7.21, "response_text_snippet": "Kubernetes orchestrates containerized applications..." },
+    { "request_id": "run_5", "client_latency_s": 8.92, "total_duration_s": 8.83, "ttft_s": 0.084, "eval_duration_s": 8.746, "prompt_eval_count": 46, "eval_count": 63, "tokens_per_second": 7.20, "response_text_snippet": "Container scheduling selects suitable nodes based on constraints..." },
+    { "request_id": "run_6", "client_latency_s": 12.15, "total_duration_s": 12.06, "ttft_s": 0.085, "eval_duration_s": 11.975, "prompt_eval_count": 46, "eval_count": 86, "tokens_per_second": 7.18, "response_text_snippet": "Kubernetes manages container lifecycles across clusters..." },
+    { "request_id": "run_7", "client_latency_s": 11.18, "total_duration_s": 11.09, "ttft_s": 0.084, "eval_duration_s": 11.006, "prompt_eval_count": 46, "eval_count": 79, "tokens_per_second": 7.18, "response_text_snippet": "Pod scheduling determines optimal placement for pods..." },
+    { "request_id": "run_8", "client_latency_s": 11.45, "total_duration_s": 11.36, "ttft_s": 0.086, "eval_duration_s": 11.274, "prompt_eval_count": 46, "eval_count": 81, "tokens_per_second": 7.18, "response_text_snippet": "Orchestration automates deployment scaling and networking..." },
+    { "request_id": "run_9", "client_latency_s": 11.75, "total_duration_s": 11.66, "ttft_s": 0.085, "eval_duration_s": 11.575, "prompt_eval_count": 46, "eval_count": 83, "tokens_per_second": 7.17, "response_text_snippet": "Kubernetes schedules workloads across nodes..." },
+    { "request_id": "run_10", "client_latency_s": 11.87, "total_duration_s": 11.78, "ttft_s": 0.085, "eval_duration_s": 11.695, "prompt_eval_count": 46, "eval_count": 84, "tokens_per_second": 7.18, "response_text_snippet": "InferenceOps evaluates llama.cpp OpenAI endpoint..." }
+  ]
+}

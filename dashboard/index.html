@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Core Dashboard Stylesheet -->
-  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v6">
+  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v7">
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -482,21 +482,21 @@
             </div>
 
             <div class="tree-leaves-row">
-              <div class="tree-leaf-card active">
+              <div class="tree-leaf-card active" id="tree-card-ollama">
                 <span class="engine-badge ollama">Ollama</span>
                 <span class="leaf-tps" id="tree-tps-ollama">7.31 tok/s</span>
                 <span class="leaf-meta">AWS EC2 CPU (c7i)</span>
               </div>
 
-              <div class="tree-leaf-card pending">
+              <div class="tree-leaf-card pending" id="tree-card-llama">
                 <span class="engine-badge llama">llama.cpp</span>
-                <span class="leaf-tps">— tok/s</span>
-                <span class="leaf-meta">Planned (Exp 9)</span>
+                <span class="leaf-tps" id="tree-tps-llama">— tok/s</span>
+                <span class="leaf-meta">AWS EC2 CPU (c7i)</span>
               </div>
 
-              <div class="tree-leaf-card pending">
+              <div class="tree-leaf-card pending" id="tree-card-vllm">
                 <span class="engine-badge vllm">vLLM</span>
-                <span class="leaf-tps">— tok/s</span>
+                <span class="leaf-tps" id="tree-tps-vllm">— tok/s</span>
                 <span class="leaf-meta">Planned (Exp 11)</span>
               </div>
             </div>
@@ -532,28 +532,32 @@
                 <td><span id="matrix-ollama-p95">12.97s</span></td>
                 <td><span id="matrix-ollama-cpu">84.3%</span></td>
                 <td><span id="matrix-ollama-cost">$14.59 / 1M</span></td>
-                <td><span class="status-badge active">Active Baseline</span></td>
+                <td><span id="matrix-ollama-status"><span class="status-badge active">Active Baseline</span></span></td>
               </tr>
               <tr>
                 <td><span class="engine-badge llama">llama.cpp</span></td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td><span class="status-badge standby">Planned (Exp 9)</span></td>
+                <td><strong style="color: var(--accent-pink);" id="matrix-llama-tps">—</strong></td>
+                <td><span id="matrix-llama-p50">—</span></td>
+                <td><span id="matrix-llama-p95">—</span></td>
+                <td><span id="matrix-llama-cpu">—</span></td>
+                <td><span id="matrix-llama-cost">—</span></td>
+                <td><span id="matrix-llama-status"><span class="status-badge standby">Planned (Exp 9)</span></span></td>
               </tr>
               <tr>
                 <td><span class="engine-badge vllm">vLLM</span></td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td><span class="status-badge standby">Planned (Exp 11)</span></td>
+                <td><strong id="matrix-vllm-tps">—</strong></td>
+                <td><span id="matrix-vllm-p50">—</span></td>
+                <td><span id="matrix-vllm-p95">—</span></td>
+                <td><span id="matrix-vllm-cpu">—</span></td>
+                <td><span id="matrix-vllm-cost">—</span></td>
+                <td><span id="matrix-vllm-status"><span class="status-badge standby">Planned (Exp 11)</span></span></td>
               </tr>
             </tbody>
           </table>
+
+          <p class="comparison-note" style="margin-top: 14px; font-size: 12px; color: var(--text-dim); line-height: 1.5;">
+            ℹ️ <strong>Controlled Benchmark Note:</strong> Both Ollama and llama.cpp evaluate <code>Qwen 2.5 7B Q4_K_M</code> on AWS EC2 (8 vCPU Intel Xeon) under identical workload parameters (c=1, n=10, warmup=1, temp=0.0). This head-to-head comparison is for controlled benchmarking demonstration and is not production-grade.
+          </p>
         </div>
 
         <!-- COMPARATIVE VISUAL CHART -->

@@ -46,6 +46,8 @@ services:
       - "8080"
       - "-c"
       - "32768"
+      - "-t"
+      - "8"
 
     networks:
       - inferenceops
