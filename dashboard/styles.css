@@ -1,13 +1,13 @@
 /* InferenceOps Dashboard - Premium Engineering Visuals & Provenance Badging */
 
 :root {
-  --bg-dark: #0a0618;
-  --sidebar-bg: #0d0822;
-  --topbar-bg: rgba(13, 8, 34, 0.85);
-  --card-bg: rgba(18, 12, 38, 0.75);
-  --card-bg-hover: rgba(26, 17, 54, 0.85);
-  --card-border: rgba(168, 85, 247, 0.22);
-  --card-border-glow: rgba(236, 72, 153, 0.45);
+  --bg-dark: #060510;
+  --sidebar-bg: rgba(10, 7, 24, 0.65);
+  --topbar-bg: rgba(10, 7, 24, 0.65);
+  --card-bg: rgba(16, 11, 36, 0.55);
+  --card-bg-hover: rgba(26, 17, 54, 0.70);
+  --card-border: rgba(168, 85, 247, 0.28);
+  --card-border-glow: rgba(236, 72, 153, 0.50);
 
   --text-main: #ffffff;
   --text-muted: #94a3b8;
@@ -39,9 +39,11 @@
 body {
   background-color: var(--bg-dark);
   background-image: 
-    radial-gradient(circle at 15% 20%, rgba(217, 70, 239, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 85% 65%, rgba(0, 242, 254, 0.10) 0%, transparent 45%),
-    radial-gradient(circle at 50% 90%, rgba(168, 85, 247, 0.12) 0%, transparent 50%);
+    radial-gradient(circle at 10% 15%, rgba(217, 70, 239, 0.25) 0%, transparent 45%),
+    radial-gradient(circle at 90% 40%, rgba(0, 242, 254, 0.20) 0%, transparent 45%),
+    radial-gradient(circle at 45% 85%, rgba(168, 85, 247, 0.22) 0%, transparent 50%),
+    radial-gradient(circle at 85% 90%, rgba(236, 72, 153, 0.22) 0%, transparent 45%);
+  background-attachment: fixed;
   color: var(--text-main);
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -60,6 +62,8 @@ body {
 .sidebar {
   width: 72px;
   background: var(--sidebar-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border-right: 1px solid var(--card-border);
   display: flex;
   flex-direction: column;
@@ -162,7 +166,8 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
 
 .topbar-left {
@@ -346,13 +351,15 @@ body {
 /* REPRODUCIBLE RUN METADATA HEADER CARD */
 .run-metadata-card {
   background: var(--card-bg);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--card-border-glow);
   border-radius: var(--radius-lg);
   padding: 18px 22px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 0 20px rgba(168, 85, 247, 0.12);
 }
 
 .run-meta-primary {
@@ -563,8 +570,8 @@ body {
 
 .hero-card {
   background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
   padding: 18px 20px;
@@ -574,14 +581,14 @@ body {
   height: 160px;
   position: relative;
   overflow: hidden;
-  transition: all 0.25s ease;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 0 20px rgba(168, 85, 247, 0.08);
 }
 
 .hero-card:hover {
   border-color: var(--card-border-glow);
   background: var(--card-bg-hover);
-  box-shadow: 0 12px 35px rgba(236, 72, 153, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 0 30px rgba(236, 72, 153, 0.25);
 }
 
 .hero-card-header {
@@ -651,6 +658,8 @@ body {
 /* Card 4: Selector Stack Card */
 .selector-stack-card {
   background: var(--card-bg);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
   padding: 12px;
@@ -659,12 +668,12 @@ body {
   flex-direction: column;
   gap: 8px;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.15);
 }
 
 .selector-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
   padding: 8px 12px;
   display: flex;
@@ -675,7 +684,8 @@ body {
 }
 
 .selector-item:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(236, 72, 153, 0.4);
 }
 
 .selector-info {
@@ -720,15 +730,20 @@ body {
 
 .card-panel {
   background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-lg);
   padding: 22px 24px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  transition: all 0.25s ease;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 0 20px rgba(168, 85, 247, 0.08);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-clickable:hover, .card-panel:hover {
+  border-color: var(--card-border-glow);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 0 30px rgba(236, 72, 153, 0.25);
 }
 
 .card-clickable {
