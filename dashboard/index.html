@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Core Dashboard Stylesheet -->
-  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v4">
+  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v5">
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -449,42 +449,95 @@
         </div>
       </section>
 
-      <!-- TAB 3: RUNTIME COMPARISON MATRIX -->
+      <!-- TAB 3: RUNTIME COMPARISON MATRIX & ARCHITECTURE TREE -->
       <section class="dashboard-body view-section" id="view-models" style="display:none;">
-        <div class="card-panel">
+        
+        <!-- WORKLOAD ARCHITECTURE ROUTING DIAGRAM -->
+        <div class="card-panel arch-tree-card">
+          <div class="tree-header">
+            <div>
+              <h3 class="panel-title" style="font-size: 18px;">Runtime Comparison Architecture</h3>
+              <p class="panel-subtitle">Same Workload Routing (Qwen 2.5 7B, 10 Requests, Concurrency=1)</p>
+            </div>
+            <span class="same-workload-badge">SAME WORKLOAD BENCHMARK</span>
+          </div>
+
+          <div class="tree-diagram-container">
+            <div class="tree-root-box">
+              <span class="root-tag">TARGET MODEL</span>
+              <span class="root-title">Qwen 2.5 7B</span>
+            </div>
+
+            <div class="tree-connectors-svg">
+              <svg width="100%" height="40" viewBox="0 0 600 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M300 0V20M300 20H100V40M300 20H300V40M300 20H500V40" stroke="url(#treeGrad)" stroke-width="2"/>
+                <defs>
+                  <linearGradient id="treeGrad" x1="100" y1="0" x2="500" y2="40" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#00F2FE"/>
+                    <stop offset="0.5" stop-color="#A855F7"/>
+                    <stop offset="1" stop-color="#EC4899"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+
+            <div class="tree-leaves-row">
+              <div class="tree-leaf-card active">
+                <span class="engine-badge ollama">Ollama</span>
+                <span class="leaf-tps" id="tree-tps-ollama">7.31 tok/s</span>
+                <span class="leaf-meta">AWS EC2 CPU (c7i)</span>
+              </div>
+
+              <div class="tree-leaf-card pending">
+                <span class="engine-badge llama">llama.cpp</span>
+                <span class="leaf-tps">— tok/s</span>
+                <span class="leaf-meta">Planned (Exp 9)</span>
+              </div>
+
+              <div class="tree-leaf-card pending">
+                <span class="engine-badge vllm">vLLM</span>
+                <span class="leaf-tps">— tok/s</span>
+                <span class="leaf-meta">Planned (Exp 11)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EMPIRICAL COMPARISON TABLE -->
+        <div class="card-panel" style="margin-top: 20px;">
           <div class="panel-header">
             <div>
-              <h2 class="panel-title" style="font-size: 20px;">LLM Serving Runtime & Hardware Comparison Matrix</h2>
-              <p class="panel-subtitle">Empirical performance & infrastructure cost benchmark matrix across engines and hardware</p>
+              <h3 class="panel-title">Empirical Runtime Performance Comparison</h3>
+              <p class="panel-subtitle">Head-to-head metrics under identical workload parameters</p>
             </div>
           </div>
 
           <table class="data-table">
             <thead>
               <tr>
-                <th>Runtime Engine</th>
-                <th>Model</th>
-                <th>Hardware / Specs</th>
+                <th>Runtime</th>
                 <th>Throughput</th>
+                <th>P50 Latency</th>
                 <th>P95 Latency</th>
+                <th>CPU Load</th>
                 <th>Cost / 1M Tokens</th>
-                <th>Status / Experiment</th>
+                <th>Status / Roadmap</th>
               </tr>
             </thead>
             <tbody>
               <tr class="highlight-row">
                 <td><span class="engine-badge ollama">Ollama</span></td>
-                <td><strong>Qwen 2.5 7B</strong></td>
-                <td>AWS EC2 c7i (8 vCPU Intel Xeon)</td>
-                <td><strong style="color: var(--accent-cyan);">7.31 tok/s</strong></td>
-                <td>12.97s</td>
-                <td>$14.59 / 1M</td>
-                <td><span class="status-badge active">Completed (Exp 1)</span></td>
+                <td><strong style="color: var(--accent-cyan);" id="matrix-ollama-tps">7.31 tok/s</strong></td>
+                <td><span id="matrix-ollama-p50">11.37s</span></td>
+                <td><span id="matrix-ollama-p95">12.97s</span></td>
+                <td><span id="matrix-ollama-cpu">84.3%</span></td>
+                <td><span id="matrix-ollama-cost">$14.59 / 1M</span></td>
+                <td><span class="status-badge active">Active Baseline</span></td>
               </tr>
               <tr>
                 <td><span class="engine-badge llama">llama.cpp</span></td>
-                <td><strong>Qwen 2.5 7B</strong></td>
-                <td>AWS EC2 c7i (8 vCPU Intel Xeon)</td>
+                <td>—</td>
+                <td>—</td>
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>
@@ -492,34 +545,30 @@
               </tr>
               <tr>
                 <td><span class="engine-badge vllm">vLLM</span></td>
-                <td><strong>Qwen 2.5 7B</strong></td>
-                <td>AWS EC2 c7i (8 vCPU Intel Xeon)</td>
+                <td>—</td>
+                <td>—</td>
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>
                 <td><span class="status-badge standby">Planned (Exp 11)</span></td>
               </tr>
-              <tr>
-                <td><span class="engine-badge ollama">Ollama</span></td>
-                <td><strong>Qwen 2.5 7B</strong></td>
-                <td>NVIDIA RTX 3060 (12GB VRAM)</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td><span class="status-badge standby">Planned (Exp 10)</span></td>
-              </tr>
-              <tr>
-                <td><span class="engine-badge vllm">vLLM</span></td>
-                <td><strong>Qwen 2.5 7B</strong></td>
-                <td>AWS G6 (NVIDIA A10G GPU)</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td><span class="status-badge standby">Planned (Exp 10)</span></td>
-              </tr>
             </tbody>
           </table>
         </div>
+
+        <!-- COMPARATIVE VISUAL CHART -->
+        <div class="card-panel" style="margin-top: 20px;">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">Runtime Throughput Comparison Bar Chart</h3>
+              <p class="panel-subtitle">Visual throughput evaluation (tokens/sec)</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="chart-runtime-comparison"></canvas>
+          </div>
+        </div>
+
       </section>
 
       <!-- TAB 4: MONITORING VIEW -->
@@ -645,6 +694,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=20260915_v4"></script>
+  <script src="app.js?v=20260915_v5"></script>
 </body>
 </html>

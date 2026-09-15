@@ -8,6 +8,7 @@ let sparklineP99 = null;
 let percentilesChart = null;
 let scatterChart = null;
 let costAreaChart = null;
+let runtimeComparisonChart = null;
 
 // REAL EC2 CPU BASELINE DATA (qwen2.5:7b on AWS EC2 8 vCPU)
 const REAL_EC2_BASELINE = {
@@ -110,6 +111,8 @@ function initDashboard(data) {
   renderPercentilesChart(data);
   renderScatterChart(data);
   renderCostAreaChart(data);
+  updateRuntimeComparisonMatrix(data);
+  renderRuntimeComparisonChart(data);
   updateRawJsonViewer(data);
 }
 
@@ -180,6 +183,76 @@ function updateCostBreakdown(data) {
   document.getElementById("cost-calc-total").textContent = `$${costPerMillion.toFixed(2)} / 1M Tokens`;
   document.getElementById("cost-calc-input").textContent = `$${costInput.toFixed(2)}`;
   document.getElementById("cost-calc-output").textContent = `$${costOutput.toFixed(2)}`;
+}
+
+// UPDATE RUNTIME COMPARISON MATRIX & ARCHITECTURE TREE VALUES
+function updateRuntimeComparisonMatrix(data) {
+  const stats = data.summary_statistics || {};
+  const tpsMean = (stats.tokens_per_second && stats.tokens_per_second.mean) || 7.31;
+  const lat = stats.client_latency_s || {};
+  const p50 = lat.p50 || 11.37;
+  const p95 = lat.p95 || 12.97;
+  const hourlyRate = parseFloat(document.getElementById("setting-rate")?.value || 0.384);
+  const costPerMillion = (hourlyRate / 3600) * (1000000 / tpsMean);
+
+  const elTps = document.getElementById("matrix-ollama-tps");
+  if (elTps) elTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
+
+  const elTreeTps = document.getElementById("tree-tps-ollama");
+  if (elTreeTps) elTreeTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
+
+  const elP50 = document.getElementById("matrix-ollama-p50");
+  if (elP50) elP50.textContent = `${p50.toFixed(2)}s`;
+
+  const elP95 = document.getElementById("matrix-ollama-p95");
+  if (elP95) elP95.textContent = `${p95.toFixed(2)}s`;
+
+  const elCost = document.getElementById("matrix-ollama-cost");
+  if (elCost) elCost.textContent = `$${costPerMillion.toFixed(2)} / 1M`;
+}
+
+function renderRuntimeComparisonChart(data) {
+  const ctx = document.getElementById("chart-runtime-comparison")?.getContext("2d");
+  if (!ctx) return;
+  if (runtimeComparisonChart) runtimeComparisonChart.destroy();
+
+  const tpsMean = (data.summary_statistics && data.summary_statistics.tokens_per_second && data.summary_statistics.tokens_per_second.mean) || 7.31;
+
+  runtimeComparisonChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Ollama (Active Baseline)", "llama.cpp (Planned Exp 9)", "vLLM (Planned Exp 11)"],
+      datasets: [{
+        label: "Throughput (tokens/sec)",
+        data: [tpsMean, 0, 0],
+        backgroundColor: [
+          "rgba(0, 242, 254, 0.8)",
+          "rgba(236, 72, 153, 0.3)",
+          "rgba(168, 85, 247, 0.3)"
+        ],
+        borderColor: ["#00f2fe", "#ec4899", "#a855f7"],
+        borderWidth: 2,
+        borderRadius: 8,
+        barThickness: 44
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: { ticks: { color: "#94a3b8", font: { family: "Outfit", size: 12 } }, grid: { display: false } },
+        y: { 
+          min: 0, 
+          max: Math.ceil(tpsMean * 1.3), 
+          ticks: { color: "#64748b", font: { family: "JetBrains Mono", size: 11 } }, 
+          grid: { color: "rgba(255, 255, 255, 0.04)" } 
+        }
+      }
+    }
+  });
 }
 
 function updateCpuGauge(pct, coresStr) {
@@ -626,6 +699,8 @@ function setupInteractivity() {
     alert("Platform settings saved successfully!");
     updateCostBreakdown(currentDataset);
     renderCostAreaChart(currentDataset);
+    updateRuntimeComparisonMatrix(currentDataset);
+    renderRuntimeComparisonChart(currentDataset);
   });
 
   document.getElementById("btn-logout")?.addEventListener("click", () => {
@@ -674,7 +749,6 @@ async function executeLiveBenchmark() {
   const results = [];
   const overallStartTime = performance.now();
 
-  // Helper single request function
   async function runSingleRequest(reqIdx) {
     const startTime = performance.now();
     let resp = null;
@@ -734,7 +808,6 @@ async function executeLiveBenchmark() {
     }
   }
 
-  // Execute in Concurrent Batches
   let completedCount = 0;
   for (let i = 0; i < numReqs; i += concurrency) {
     const batchPromises = [];
@@ -766,7 +839,6 @@ async function executeLiveBenchmark() {
   statusText.textContent = "Benchmark Completed Successfully!";
   logOutput.innerHTML += `\n[COMPLETE] Run ${runId} finished in ${overallDurationSec.toFixed(2)}s total!\n`;
 
-  // Calculate Summary Statistics
   const latencies = results.map(r => r.client_latency_s).sort((a, b) => a - b);
   const tpsArr = results.map(r => r.tokens_per_second);
   const meanLat = latencies.reduce((a, b) => a + b, 0) / latencies.length;
@@ -813,7 +885,6 @@ async function executeLiveBenchmark() {
 
   initDashboard(liveDataset);
 
-  // Update Provenance Badge to LIVE
   const badgeOrigin = document.getElementById("badge-data-origin");
   if (badgeOrigin) {
     badgeOrigin.textContent = "LIVE RUN";
