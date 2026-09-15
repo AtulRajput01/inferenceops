@@ -299,8 +299,19 @@ function renderRuntimeComparisonChart() {
   const vllmTps = 0;
 
   const llamaLabel = runtimesData.llamacpp ? "llama.cpp (Benchmarked)" : "llama.cpp (Planned)";
-
   const maxTps = Math.max(ollamaTps, llamaTps, 1);
+
+  const gradOllama = ctx.createLinearGradient(0, 220, 0, 0);
+  gradOllama.addColorStop(0, "rgba(0, 242, 254, 0.2)");
+  gradOllama.addColorStop(1, "rgba(0, 242, 254, 0.95)");
+
+  const gradLlama = ctx.createLinearGradient(0, 220, 0, 0);
+  gradLlama.addColorStop(0, "rgba(236, 72, 153, 0.2)");
+  gradLlama.addColorStop(1, "rgba(236, 72, 153, 0.95)");
+
+  const gradVllm = ctx.createLinearGradient(0, 220, 0, 0);
+  gradVllm.addColorStop(0, "rgba(168, 85, 247, 0.15)");
+  gradVllm.addColorStop(1, "rgba(168, 85, 247, 0.4)");
 
   runtimeComparisonChart = new Chart(ctx, {
     type: "bar",
@@ -310,14 +321,14 @@ function renderRuntimeComparisonChart() {
         label: "Throughput (tokens/sec)",
         data: [ollamaTps, llamaTps, vllmTps],
         backgroundColor: [
-          "rgba(0, 242, 254, 0.8)",
-          runtimesData.llamacpp ? "rgba(236, 72, 153, 0.8)" : "rgba(236, 72, 153, 0.3)",
-          "rgba(168, 85, 247, 0.3)"
+          gradOllama,
+          runtimesData.llamacpp ? gradLlama : "rgba(236, 72, 153, 0.25)",
+          gradVllm
         ],
         borderColor: ["#00f2fe", "#ec4899", "#a855f7"],
         borderWidth: 2,
         borderRadius: 8,
-        barThickness: 44
+        barThickness: 50
       }]
     },
     options: {
@@ -327,7 +338,7 @@ function renderRuntimeComparisonChart() {
         legend: { display: false }
       },
       scales: {
-        x: { ticks: { color: "#94a3b8", font: { family: "Outfit", size: 12 } }, grid: { display: false } },
+        x: { ticks: { color: "#94a3b8", font: { family: "Outfit", size: 12, weight: "600" } }, grid: { display: false } },
         y: { 
           min: 0, 
           max: Math.ceil(maxTps * 1.3), 
@@ -391,8 +402,8 @@ function renderSparklines(data) {
   const ctxTps = document.getElementById("sparkline-tps").getContext("2d");
   if (sparklineTps) sparklineTps.destroy();
 
-  const gradientTpsFill = ctxTps.createLinearGradient(0, 0, 0, 50);
-  gradientTpsFill.addColorStop(0, "rgba(217, 70, 239, 0.35)");
+  const gradientTpsFill = ctxTps.createLinearGradient(0, 0, 0, 65);
+  gradientTpsFill.addColorStop(0, "rgba(217, 70, 239, 0.45)");
   gradientTpsFill.addColorStop(1, "rgba(217, 70, 239, 0.0)");
 
   sparklineTps = new Chart(ctxTps, {
@@ -402,7 +413,7 @@ function renderSparklines(data) {
       datasets: [{
         data: tpsPoints,
         borderColor: "#d946ef",
-        borderWidth: 2,
+        borderWidth: 2.5,
         fill: true,
         backgroundColor: gradientTpsFill,
         tension: 0.45,
@@ -421,8 +432,8 @@ function renderSparklines(data) {
   const ctxTtft = document.getElementById("sparkline-ttft").getContext("2d");
   if (sparklineTtft) sparklineTtft.destroy();
 
-  const gradientTtftFill = ctxTtft.createLinearGradient(0, 0, 0, 50);
-  gradientTtftFill.addColorStop(0, "rgba(0, 242, 254, 0.3)");
+  const gradientTtftFill = ctxTtft.createLinearGradient(0, 0, 0, 65);
+  gradientTtftFill.addColorStop(0, "rgba(0, 242, 254, 0.4)");
   gradientTtftFill.addColorStop(1, "rgba(0, 242, 254, 0.0)");
 
   sparklineTtft = new Chart(ctxTtft, {
@@ -432,7 +443,7 @@ function renderSparklines(data) {
       datasets: [{
         data: ttftPoints,
         borderColor: "#00f2fe",
-        borderWidth: 2,
+        borderWidth: 2.5,
         fill: true,
         backgroundColor: gradientTtftFill,
         tension: 0.45,
@@ -451,8 +462,8 @@ function renderSparklines(data) {
   const ctxP99 = document.getElementById("sparkline-p99").getContext("2d");
   if (sparklineP99) sparklineP99.destroy();
 
-  const gradientP99Fill = ctxP99.createLinearGradient(0, 0, 0, 50);
-  gradientP99Fill.addColorStop(0, "rgba(236, 72, 153, 0.25)");
+  const gradientP99Fill = ctxP99.createLinearGradient(0, 0, 0, 65);
+  gradientP99Fill.addColorStop(0, "rgba(236, 72, 153, 0.4)");
   gradientP99Fill.addColorStop(1, "rgba(236, 72, 153, 0.0)");
 
   sparklineP99 = new Chart(ctxP99, {
@@ -462,7 +473,7 @@ function renderSparklines(data) {
       datasets: [{
         data: p99Points,
         borderColor: "#ec4899",
-        borderWidth: 1.5,
+        borderWidth: 2.5,
         fill: true,
         backgroundColor: gradientP99Fill,
         tension: 0.45,
@@ -490,17 +501,17 @@ function renderPercentilesChart(data) {
   if (percentilesChart) percentilesChart.destroy();
 
   const gradP50 = ctx.createLinearGradient(0, 220, 0, 0);
-  gradP50.addColorStop(0, "rgba(0, 242, 254, 0.15)");
-  gradP50.addColorStop(1, "rgba(0, 242, 254, 0.9)");
+  gradP50.addColorStop(0, "rgba(0, 242, 254, 0.2)");
+  gradP50.addColorStop(1, "rgba(0, 242, 254, 0.95)");
 
   const gradP95 = ctx.createLinearGradient(0, 220, 0, 0);
-  gradP95.addColorStop(0, "rgba(168, 85, 247, 0.15)");
-  gradP95.addColorStop(1, "rgba(236, 72, 153, 0.9)");
+  gradP95.addColorStop(0, "rgba(168, 85, 247, 0.2)");
+  gradP95.addColorStop(1, "rgba(168, 85, 247, 0.95)");
 
   const gradP99 = ctx.createLinearGradient(0, 220, 0, 0);
-  gradP99.addColorStop(0, "rgba(0, 242, 254, 0.2)");
-  gradP99.addColorStop(0.5, "rgba(168, 85, 247, 0.6)");
-  gradP99.addColorStop(1, "rgba(217, 70, 239, 0.95)");
+  gradP99.addColorStop(0, "rgba(236, 72, 153, 0.2)");
+  gradP99.addColorStop(0.5, "rgba(217, 70, 239, 0.6)");
+  gradP99.addColorStop(1, "rgba(236, 72, 153, 0.95)");
 
   const floatingBadgesPlugin = {
     id: 'floatingBadges',
@@ -508,8 +519,8 @@ function renderPercentilesChart(data) {
       const { ctx } = chart;
       const meta = chart.getDatasetMeta(0);
       const labels = [`P50=${p50Val.toFixed(2)}s`, `P95=${p95Val.toFixed(2)}s`, `P99=${p99Val.toFixed(2)}s`];
-      const fontColors = ["#00f2fe", "#ec4899", "#d946ef"];
-      const strokeColors = ["rgba(0, 242, 254, 0.5)", "rgba(236, 72, 153, 0.5)", "rgba(217, 70, 239, 0.5)"];
+      const fontColors = ["#00f2fe", "#a855f7", "#ec4899"];
+      const strokeColors = ["rgba(0, 242, 254, 0.6)", "rgba(168, 85, 247, 0.6)", "rgba(236, 72, 153, 0.6)"];
 
       meta.data.forEach((bar, index) => {
         const valText = labels[index] || "";
@@ -519,16 +530,16 @@ function renderPercentilesChart(data) {
         ctx.save();
         ctx.font = '600 12px "JetBrains Mono", monospace';
         const textWidth = ctx.measureText(valText).width;
-        const paddingX = 8;
+        const paddingX = 9;
         const badgeWidth = textWidth + paddingX * 2;
-        const badgeHeight = 20;
+        const badgeHeight = 22;
 
         const badgeX = bar.x - badgeWidth / 2;
-        const badgeY = bar.y - 30;
+        const badgeY = bar.y - 32;
 
-        ctx.fillStyle = '#0e1122';
+        ctx.fillStyle = '#120c26';
         ctx.strokeStyle = strokeColor;
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 1.5;
 
         ctx.beginPath();
         ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, 6);
@@ -551,7 +562,7 @@ function renderPercentilesChart(data) {
       datasets: [{
         data: [p50Val, p95Val, p99Val],
         backgroundColor: [gradP50, gradP95, gradP99],
-        borderColor: ["#00f2fe", "#ec4899", "#d946ef"],
+        borderColor: ["#00f2fe", "#a855f7", "#ec4899"],
         borderWidth: 2,
         borderRadius: 8,
         barThickness: 56
@@ -582,7 +593,6 @@ function renderPercentilesChart(data) {
   });
 }
 
-// FIX: TIMELINE SCATTER PLOT X-AXIS ALIGNMENT (Run 1 -> Run n)
 function renderScatterChart(data) {
   const runs = data.benchmark_results || [];
 
@@ -606,8 +616,8 @@ function renderScatterChart(data) {
         backgroundColor: "#00f2fe",
         borderColor: "#ec4899",
         borderWidth: 2,
-        pointRadius: 6,
-        pointHoverRadius: 9
+        pointRadius: 7,
+        pointHoverRadius: 10
       }]
     },
     options: {
@@ -616,9 +626,9 @@ function renderScatterChart(data) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "#0e1124",
-          borderColor: "rgba(168,85,247,0.3)",
-          borderWidth: 1,
+          backgroundColor: "#120c26",
+          borderColor: "rgba(168,85,247,0.4)",
+          borderWidth: 1.5,
           titleFont: { family: "Outfit", size: 13, weight: "700" },
           bodyFont: { family: "JetBrains Mono", size: 12 },
           callbacks: {
