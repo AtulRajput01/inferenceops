@@ -11,8 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Core Dashboard Stylesheet with cache buster -->
-  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915">
+  <!-- Core Dashboard Stylesheet -->
+  <link rel="stylesheet" type="text/css" href="styles.css?v=20260915_v2">
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -23,17 +23,56 @@
     
     <!-- Left Navigation Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-logo">⚡</div>
+      <div class="sidebar-logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#logo-grad-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 17L12 22L22 17" stroke="url(#logo-grad-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 12L12 17L22 12" stroke="url(#logo-grad-3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="logo-grad-1" x1="2" y1="2" x2="22" y2="12" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00F2FE"/>
+              <stop offset="1" stop-color="#EC4899"/>
+            </linearGradient>
+            <linearGradient id="logo-grad-2" x1="2" y1="17" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#A855F7"/>
+              <stop offset="1" stop-color="#EC4899"/>
+            </linearGradient>
+            <linearGradient id="logo-grad-3" x1="2" y1="12" x2="22" y2="17" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00F2FE"/>
+              <stop offset="1" stop-color="#A855F7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
       <nav class="sidebar-nav">
-        <button class="nav-item active" title="Dashboard">🎛️</button>
-        <button class="nav-item" title="Benchmarks">📈</button>
-        <button class="nav-item" title="Topology">🌐</button>
-        <button class="nav-item" title="Analytics">📊</button>
-        <button class="nav-item" title="Logs">📁</button>
+        <button class="nav-item active" title="Dashboard">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+        </button>
+        <button class="nav-item" title="Benchmarks">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        </button>
+        <button class="nav-item" title="Topology">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><path d="M12 8v4M7.5 17.5l3-3.5M16.5 17.5l-3-3.5"/></svg>
+        </button>
+        <button class="nav-item" title="Analytics">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M18 9l-5 5-4-4-3 3"/></svg>
+        </button>
+        <button class="nav-item" title="Logs">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8v13H3V3h13l5 5z"/><path d="M14 3v5h5"/></svg>
+        </button>
+        <button class="nav-item" title="Settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
       </nav>
+
       <div class="sidebar-bottom">
-        <button class="nav-item" title="Settings">⚙️</button>
-        <button class="nav-item" title="Logout">🚪</button>
+        <button class="nav-item" title="Settings Bottom">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="nav-item" title="Logout">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
       </div>
     </aside>
 
@@ -43,9 +82,22 @@
       <!-- Top Navigation Header -->
       <header class="topbar">
         <div class="topbar-left">
-          <div class="topbar-brand">
-            <h2>InferenceOps</h2>
-            <p>LLM Inference Benchmarking Platform</p>
+          <div class="brand-badge">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="24" height="24" rx="6" fill="url(#brand-bg)"/>
+              <path d="M12 6L6 9.5L12 13L18 9.5L12 6Z" fill="#00F2FE"/>
+              <path d="M6 14.5L12 18L18 14.5" stroke="#EC4899" stroke-width="1.5" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="brand-bg" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#1E1B4B"/>
+                  <stop offset="1" stop-color="#0F172A"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="topbar-brand">
+              <h2>InferenceOps</h2>
+              <p>LLM Inference Benchmarking Platform</p>
+            </div>
           </div>
           
           <nav class="topbar-tabs">
@@ -59,16 +111,23 @@
 
         <div class="topbar-right">
           <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input type="text" placeholder="Search benchmark...">
+            <input type="text" placeholder="Search">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
           </div>
 
-          <button class="upload-trigger" id="upload-btn">📂 Load JSON</button>
+          <button class="upload-trigger" id="upload-btn" title="Load Benchmark JSON Log">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            Load JSON
+          </button>
           <input type="file" id="file-input" accept=".json" style="display:none;">
 
+          <div class="user-admin">Admin</div>
+
           <div class="user-profile">
-            <div class="avatar">PK</div>
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Pavel K." class="avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="avatar" style="display:none;">PK</div>
             <span class="user-name">Pavel K.</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
           </div>
         </div>
       </header>
@@ -76,57 +135,82 @@
       <!-- Dashboard Body Content -->
       <main class="dashboard-body">
         
-        <!-- Row 1: Hero Metric Cards -->
+        <!-- Row 1: Hero Metric Cards & Selector Stack -->
         <div class="hero-row">
           
           <!-- Card 1: Throughput -->
           <div class="hero-card">
-            <div>
-              <div class="hero-header">
-                <span class="hero-title">Throughput</span>
-              </div>
-              <div class="hero-value" id="kpi-tps">7.31 <span class="hero-unit">tokens/sec</span></div>
-              <div class="hero-sub">Mean generation speed</div>
+            <div class="hero-card-header">
+              <span class="hero-title">Throughput</span>
             </div>
-            <canvas id="sparkline-tps" class="sparkline-canvas"></canvas>
+            <div class="hero-card-body">
+              <div class="hero-value-wrapper">
+                <span class="hero-value" id="kpi-tps">7.31</span>
+                <span class="hero-unit">tokens/sec</span>
+              </div>
+              <div class="hero-sub" id="kpi-tps-sub">Large</div>
+            </div>
+            <div class="sparkline-wrapper">
+              <canvas id="sparkline-tps"></canvas>
+            </div>
           </div>
 
           <!-- Card 2: TTFT -->
           <div class="hero-card">
-            <div>
-              <div class="hero-header">
-                <span class="hero-title">TTFT</span>
-              </div>
-              <div class="hero-value" id="kpi-ttft">0.139s <span class="hero-unit">median</span></div>
-              <div class="hero-sub">Time To First Token</div>
+            <div class="hero-card-header">
+              <span class="hero-title">TTFT</span>
             </div>
-            <canvas id="sparkline-ttft" class="sparkline-canvas"></canvas>
+            <div class="hero-card-body">
+              <div class="hero-value-wrapper">
+                <span class="hero-value" id="kpi-ttft">0.139s</span>
+              </div>
+              <div class="hero-sub">median</div>
+            </div>
+            <div class="sparkline-wrapper">
+              <canvas id="sparkline-ttft"></canvas>
+            </div>
           </div>
 
           <!-- Card 3: P99 Latency -->
           <div class="hero-card">
-            <div>
-              <div class="hero-header">
-                <span class="hero-title">P99 Latency</span>
+            <div class="hero-card-header">
+              <span class="hero-title">P99 Latency</span>
+            </div>
+            <div class="hero-card-body">
+              <div class="hero-value-wrapper">
+                <span class="hero-value" id="kpi-p99">1.25s</span>
               </div>
-              <div class="hero-value" id="kpi-p99">13.02s <span class="hero-unit">median</span></div>
-              <div class="hero-sub">99th percentile total duration</div>
+              <div class="hero-sub">median</div>
+            </div>
+            <div class="sparkline-wrapper">
+              <canvas id="sparkline-p99"></canvas>
             </div>
           </div>
 
-          <!-- Card 4: Model & Specs Info Card -->
-          <div class="specs-card">
-            <div class="spec-item">
-              <span class="spec-label">Model</span>
-              <span class="spec-val" id="spec-model">qwen2.5:7b</span>
+          <!-- Card 4: Selector Stack Card -->
+          <div class="selector-stack-card">
+            <div class="selector-item">
+              <div class="selector-info">
+                <span class="selector-label">Model</span>
+                <span class="selector-val" id="spec-model">Llama 2-70b-chat</span>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
             </div>
-            <div class="spec-item">
-              <span class="spec-label">Framework</span>
-              <span class="spec-val" id="spec-framework">Ollama Container</span>
+
+            <div class="selector-item">
+              <div class="selector-info">
+                <span class="selector-label">Framework</span>
+                <span class="selector-val" id="spec-framework">Hugging Face TGI</span>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
             </div>
-            <div class="spec-item">
-              <span class="spec-label">Hardware</span>
-              <span class="spec-val" id="spec-hardware">AWS EC2 8 vCPU</span>
+
+            <div class="selector-item">
+              <div class="selector-info">
+                <span class="selector-label">Hardware</span>
+                <span class="selector-val" id="spec-hardware">A100x8 NVLink</span>
+              </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
             </div>
           </div>
 
@@ -135,25 +219,33 @@
         <!-- Row 2: Charts Grid -->
         <div class="grid-row-2">
           
-          <!-- Card 1: Latency Percentiles (P50 P95 P99) -->
+          <!-- Panel 1: Latency Percentiles (P50 P95 P99) -->
           <div class="card-panel">
             <div class="panel-header">
-              <div>
-                <h3 class="panel-title">Latency Percentiles <span>(P50 P95 P99)</span></h3>
-                <p class="panel-subtitle">Latency distribution across warm benchmark runs</p>
+              <div class="panel-header-left">
+                <h3 class="panel-title">
+                  Latency Percentiles (<span class="legend-p50">P50</span> <span class="legend-p95">P95</span> <span class="legend-p99">P99</span>)
+                </h3>
               </div>
+              <button class="panel-menu-btn" title="More options">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+              </button>
             </div>
             <div class="chart-box">
               <canvas id="chart-percentiles"></canvas>
             </div>
           </div>
 
-          <!-- Card 2: Per-Request Latency Timeline (Scatter/Timeline Plot) -->
+          <!-- Panel 2: Per-Request Latency Timeline -->
           <div class="card-panel">
             <div class="panel-header">
-              <div>
+              <div class="panel-header-left">
                 <h3 class="panel-title">Per-Request Latency Timeline</h3>
-                <p class="panel-subtitle">Sequential request duration distribution</p>
+                <p class="panel-subtitle" id="scatter-sub">Llama 2-70b , 30s avg</p>
+              </div>
+              <div class="time-filter-dropdown">
+                <span>last 3 hours</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
               </div>
             </div>
             <div class="chart-box">
@@ -166,75 +258,62 @@
         <!-- Row 3: CPU Radial Gauge & Cost Card -->
         <div class="grid-row-2">
           
-          <!-- Card 1: CPU Utilization Radial Gauge -->
+          <!-- Panel 3: CPU Utilization -->
           <div class="card-panel">
             <div class="panel-header">
-              <div>
-                <h3 class="panel-title">CPU Utilization</h3>
-                <p class="panel-subtitle">Compute instance physical & virtual core usage</p>
-              </div>
+              <h3 class="panel-title">CPU Utilization</h3>
             </div>
-            <div class="cpu-card-content">
-              <div class="gauge-wrapper">
+            
+            <div class="cpu-content-layout">
+              <div class="gauge-container">
                 <svg class="gauge-svg" viewBox="0 0 160 160">
                   <defs>
                     <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#00f2fe" />
-                      <stop offset="50%" stop-color="#a855f7" />
-                      <stop offset="100%" stop-color="#ec4899" />
+                      <stop offset="0%" stop-color="#00F2FE" />
+                      <stop offset="50%" stop-color="#A855F7" />
+                      <stop offset="100%" stop-color="#EC4899" />
                     </linearGradient>
                   </defs>
-                  <circle class="gauge-bg" cx="80" cy="80" r="70" />
-                  <circle class="gauge-progress" id="gauge-circle" cx="80" cy="80" r="70" />
+                  <circle class="gauge-bg" cx="80" cy="80" r="68" />
+                  <circle class="gauge-progress" id="gauge-circle" cx="80" cy="80" r="68" />
                 </svg>
                 <div class="gauge-center">
                   <span class="gauge-pct" id="cpu-pct">84.3%</span>
                 </div>
               </div>
 
-              <div class="cpu-meta">
-                <div>
-                  <span class="cpu-stat-label">Active Cores</span>
-                  <div class="cpu-stat-val">8 / 8 vCPU</div>
+              <div class="cpu-meta-info">
+                <div class="cpu-meta-group">
+                  <span class="cpu-stat-label">Active cores</span>
+                  <div class="cpu-stat-val" id="cpu-cores">48/64</div>
                 </div>
-                <div>
-                  <span class="cpu-stat-label">Load Distribution</span>
-                  <div class="mini-bars">
-                    <div class="mini-bar" style="height: 80%;"></div>
-                    <div class="mini-bar" style="height: 95%;"></div>
-                    <div class="mini-bar" style="height: 70%;"></div>
-                    <div class="mini-bar" style="height: 90%;"></div>
-                    <div class="mini-bar" style="height: 85%;"></div>
-                    <div class="mini-bar" style="height: 75%;"></div>
-                    <div class="mini-bar" style="height: 92%;"></div>
-                    <div class="mini-bar" style="height: 88%;"></div>
+
+                <div class="cpu-meta-group">
+                  <span class="cpu-stat-label">Load</span>
+                  <div class="equalizer-bars" id="equalizer-bars">
+                    <!-- Equalizer bars populated dynamically -->
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Card 2: Cost per Million Tokens -->
+          <!-- Panel 4: Cost per Million Tokens -->
           <div class="card-panel">
-            <div class="panel-header">
-              <div>
-                <h3 class="panel-title">Cost per Million Tokens</h3>
-                <p class="panel-subtitle">Estimated serving cost economics for open-source model execution</p>
+            <div class="panel-header cost-panel-header">
+              <h3 class="panel-title">Cost per Million Tokens</h3>
+              <div class="cost-legend">
+                <span class="legend-item"><span class="dot dot-cyan"></span>Input <strong id="cost-input">$1.15</strong></span>
+                <span class="legend-item"><span class="dot dot-pink"></span>Output <strong id="cost-output">$2.30</strong></span>
               </div>
             </div>
 
-            <div style="display: flex; align-items: baseline; justify-content: space-between;">
-              <div>
-                <span class="cost-header-val" id="cost-1m">$14.58</span>
-                <span style="font-size: 16px; color: var(--text-muted);">/ 1M Tokens</span>
-              </div>
-              <div class="cost-breakdown">
-                <span style="font-size: 13px; color: var(--text-muted);"><span class="cost-dot dot-cyan"></span>Input: <strong style="color:#fff;" id="cost-input">$4.37</strong></span>
-                <span style="font-size: 13px; color: var(--text-muted);"><span class="cost-dot dot-pink"></span>Output: <strong style="color:#fff;" id="cost-output">$10.21</strong></span>
-              </div>
+            <div class="cost-hero-value">
+              <span class="cost-amount" id="cost-1m">$3.45</span>
+              <span class="cost-unit">/ 1M Tokens</span>
             </div>
 
-            <div class="chart-box" style="height: 180px; margin-top: 10px;">
+            <div class="chart-box cost-chart-box">
               <canvas id="chart-cost-area"></canvas>
             </div>
           </div>
@@ -247,6 +326,6 @@
 
   </div>
 
-  <script src="app.js?v=20260915"></script>
+  <script src="app.js?v=20260915_v2"></script>
 </body>
 </html>

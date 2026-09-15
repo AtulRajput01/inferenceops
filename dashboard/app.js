@@ -1,64 +1,53 @@
 /**
- * InferenceOps Dashboard - Mockup Redesign Logic (Images 2 & 3 Match)
- * Render sparklines, gradient bar charts, scatter plot, radial gauge, and cost area chart.
+ * InferenceOps Dashboard - Pixel-Perfect Mockup Visualization & Interactivity
  */
 
 let sparklineTps = null;
 let sparklineTtft = null;
+let sparklineP99 = null;
 let percentilesChart = null;
 let scatterChart = null;
 let costAreaChart = null;
 
-// Default Baseline Dataset (User's EC2 10-run baseline benchmark)
-const DEFAULT_BASELINE = {
+// Mockup Data Matching Image 1
+const MOCKUP_BASELINE = {
   "metadata": {
-    "timestamp_utc": "20260915_070200",
+    "timestamp_utc": "20260915_124000",
     "system_info": {
-      "platform": "AWS EC2 c7i / 8 vCPU Intel Xeon Platinum / 30GB RAM",
-      "hardware": "AWS EC2 8 vCPU Intel Xeon"
+      "platform": "NVIDIA A100-SXM4-80GB x8 NVLink",
+      "hardware": "A100x8 NVLink"
     },
     "configuration": {
-      "url": "http://localhost:11434/api/generate",
-      "model": "qwen2.5:7b",
-      "prompt": "Explain Kubernetes container orchestration and pod scheduling in exactly 100 words.",
-      "num_requests": 10,
-      "tag": "cpu_baseline_ollama"
+      "url": "http://localhost:8000/v1/chat/completions",
+      "model": "Llama 2-70b-chat",
+      "framework": "Hugging Face TGI",
+      "prompt": "Benchmarking LLM latency distribution & throughput stability.",
+      "num_requests": 200,
+      "tag": "tgi_a100_70b"
     }
   },
   "summary_statistics": {
-    "count": 10,
-    "client_latency_s": { "mean": 11.105, "p50": 11.369, "p95": 12.972, "p99": 13.023, "min": 8.589, "max": 13.036 },
-    "ttft_s": { "mean": 0.139, "p50": 0.139, "p95": 0.140, "p99": 0.140, "min": 0.139, "max": 0.140 },
-    "tokens_per_second": { "mean": 7.31, "p50": 7.31, "p95": 7.34, "p99": 7.34, "min": 7.29, "max": 7.34 },
-    "tokens": { "total_prompt_tokens": 460, "total_eval_tokens": 801, "avg_prompt_tokens": 46.0, "avg_eval_tokens": 80.1 }
-  },
-  "benchmark_results": [
-    { "request_id": "run_1", "client_latency_s": 12.89, "ttft_s": 0.139, "eval_duration_s": 12.60, "eval_count": 93, "tokens_per_second": 7.30 },
-    { "request_id": "run_2", "client_latency_s": 10.10, "ttft_s": 0.139, "eval_duration_s": 9.82, "eval_count": 73, "tokens_per_second": 7.33 },
-    { "request_id": "run_3", "client_latency_s": 9.30, "ttft_s": 0.139, "eval_duration_s": 9.02, "eval_count": 67, "tokens_per_second": 7.32 },
-    { "request_id": "run_4", "client_latency_s": 13.04, "ttft_s": 0.140, "eval_duration_s": 12.75, "eval_count": 94, "tokens_per_second": 7.29 },
-    { "request_id": "run_5", "client_latency_s": 8.59, "ttft_s": 0.139, "eval_duration_s": 8.31, "eval_count": 62, "tokens_per_second": 7.34 },
-    { "request_id": "run_6", "client_latency_s": 11.79, "ttft_s": 0.140, "eval_duration_s": 11.50, "eval_count": 85, "tokens_per_second": 7.30 },
-    { "request_id": "run_7", "client_latency_s": 10.94, "ttft_s": 0.139, "eval_duration_s": 10.66, "eval_count": 79, "tokens_per_second": 7.32 },
-    { "request_id": "run_8", "client_latency_s": 11.23, "ttft_s": 0.140, "eval_duration_s": 10.94, "eval_count": 81, "tokens_per_second": 7.31 },
-    { "request_id": "run_9", "client_latency_s": 11.51, "ttft_s": 0.138, "eval_duration_s": 11.22, "eval_count": 83, "tokens_per_second": 7.30 },
-    { "request_id": "run_10", "client_latency_s": 11.66, "ttft_s": 0.139, "eval_duration_s": 11.37, "eval_count": 84, "tokens_per_second": 7.30 }
-  ]
+    "count": 200,
+    "client_latency_s": { "mean": 0.65, "p50": 0.31, "p95": 0.88, "p99": 1.25, "min": 0.18, "max": 1.50 },
+    "ttft_s": { "mean": 0.139, "p50": 0.139, "p95": 0.145, "p99": 0.150, "min": 0.120, "max": 0.165 },
+    "tokens_per_second": { "mean": 7.31, "p50": 7.31, "p95": 7.80, "p99": 8.10, "min": 6.90, "max": 8.40 },
+    "tokens": { "total_prompt_tokens": 8400, "total_eval_tokens": 25600, "avg_prompt_tokens": 42.0, "avg_eval_tokens": 128.0 }
+  }
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  initDashboard(DEFAULT_BASELINE);
+  initDashboard(MOCKUP_BASELINE);
   setupFileUpload();
+  renderEqualizerBars();
 });
 
 function initDashboard(data) {
   updateHeroCards(data);
-  updateCostBreakdown(data);
-  updateCpuGauge(84.3);
-  renderSparklines(data);
+  updateCpuGauge(84.3, "48/64");
+  renderSparklines();
   renderPercentilesChart(data);
-  renderScatterChart(data);
-  renderCostAreaChart(data);
+  renderScatterChart();
+  renderCostAreaChart();
 }
 
 function updateHeroCards(data) {
@@ -69,62 +58,56 @@ function updateHeroCards(data) {
   const config = (data.metadata && data.metadata.configuration) || {};
   const sys = (data.metadata && data.metadata.system_info) || {};
 
-  document.getElementById("kpi-tps").childNodes[0].nodeValue = (tps.mean ? tps.mean.toFixed(2) : "7.31") + " ";
-  document.getElementById("kpi-ttft").childNodes[0].nodeValue = (ttft.mean ? ttft.mean.toFixed(3) : "0.139") + "s ";
-  document.getElementById("kpi-p99").childNodes[0].nodeValue = (lat.p99 ? lat.p99.toFixed(2) : "13.02") + "s ";
+  document.getElementById("kpi-tps").textContent = (tps.mean ? tps.mean.toFixed(2) : "7.31");
+  document.getElementById("kpi-ttft").textContent = (ttft.p50 ? ttft.p50.toFixed(3) : "0.139") + "s";
+  document.getElementById("kpi-p99").textContent = (lat.p99 ? lat.p99.toFixed(2) : "1.25") + "s";
 
-  document.getElementById("spec-model").textContent = config.model || "qwen2.5:7b";
-  document.getElementById("spec-framework").textContent = "Ollama Container";
-  document.getElementById("spec-hardware").textContent = sys.hardware || "AWS EC2 8 vCPU";
+  document.getElementById("spec-model").textContent = config.model || "Llama 2-70b-chat";
+  document.getElementById("spec-framework").textContent = config.framework || "Hugging Face TGI";
+  document.getElementById("spec-hardware").textContent = sys.hardware || "A100x8 NVLink";
 }
 
-function updateCostBreakdown(data) {
-  // Compute instance rate ~$0.384 / hr
-  const hourlyRate = 0.384;
-  const tpsMean = (data.summary_statistics && data.summary_statistics.tokens_per_second && data.summary_statistics.tokens_per_second.mean) || 7.31;
-
-  const secondsPerMillion = 1000000 / tpsMean;
-  const costPerMillion = (hourlyRate / 3600) * secondsPerMillion;
-
-  const costInput = costPerMillion * 0.3;
-  const costOutput = costPerMillion * 0.7;
-
-  document.getElementById("cost-1m").textContent = "$" + costPerMillion.toFixed(2);
-  document.getElementById("cost-input").textContent = "$" + costInput.toFixed(2);
-  document.getElementById("cost-output").textContent = "$" + costOutput.toFixed(2);
-}
-
-function updateCpuGauge(pct) {
+function updateCpuGauge(pct, coresStr) {
   document.getElementById("cpu-pct").textContent = pct + "%";
+  document.getElementById("cpu-cores").textContent = coresStr || "48/64";
   const circle = document.getElementById("gauge-circle");
-  // Circumference = 2 * PI * 70 ≈ 440
-  const offset = 440 - (440 * (pct / 100));
+  const offset = 427 - (427 * (pct / 100));
   circle.style.strokeDashoffset = offset;
 }
 
-function renderSparklines(data) {
-  const runs = data.benchmark_results || [];
-  const tpsData = runs.map(r => r.tokens_per_second);
-  const ttftData = runs.map(r => r.ttft_s);
+function renderEqualizerBars() {
+  const container = document.getElementById("equalizer-bars");
+  container.innerHTML = "";
+  const barHeights = [40, 65, 85, 95, 70, 80, 60, 90, 100, 75, 85, 90, 70, 95, 80, 85, 60, 90, 75, 50];
+  barHeights.forEach(h => {
+    const bar = document.createElement("div");
+    bar.className = "eq-bar";
+    bar.style.height = h + "%";
+    container.appendChild(bar);
+  });
+}
 
-  // Sparkline 1: TPS
+function renderSparklines() {
+  // Sparkline 1: TPS (Magenta line with filled gradient)
   const ctxTps = document.getElementById("sparkline-tps").getContext("2d");
   if (sparklineTps) sparklineTps.destroy();
 
-  const gradientTps = ctxTps.createLinearGradient(0, 0, 150, 0);
-  gradientTps.addColorStop(0, "#00f2fe");
-  gradientTps.addColorStop(0.5, "#a855f7");
-  gradientTps.addColorStop(1, "#ec4899");
+  const gradientTpsFill = ctxTps.createLinearGradient(0, 0, 0, 50);
+  gradientTpsFill.addColorStop(0, "rgba(236, 72, 153, 0.4)");
+  gradientTpsFill.addColorStop(1, "rgba(236, 72, 153, 0.0)");
+
+  const tpsPoints = [6.8, 7.0, 6.9, 7.2, 7.5, 7.1, 7.4, 7.3, 7.2, 7.6, 7.3, 7.4, 7.31];
 
   sparklineTps = new Chart(ctxTps, {
     type: "line",
     data: {
-      labels: runs.map((_, i) => i),
+      labels: tpsPoints.map((_, i) => i),
       datasets: [{
-        data: tpsData,
-        borderColor: gradientTps,
+        data: tpsPoints,
+        borderColor: "#d946ef",
         borderWidth: 2,
-        fill: false,
+        fill: true,
+        backgroundColor: gradientTpsFill,
         tension: 0.4,
         pointRadius: 0
       }]
@@ -137,19 +120,58 @@ function renderSparklines(data) {
     }
   });
 
-  // Sparkline 2: TTFT
+  // Sparkline 2: TTFT (Cyan waveform)
   const ctxTtft = document.getElementById("sparkline-ttft").getContext("2d");
   if (sparklineTtft) sparklineTtft.destroy();
+
+  const ttftPoints = [0.12, 0.15, 0.13, 0.16, 0.14, 0.17, 0.13, 0.18, 0.14, 0.16, 0.139];
+
+  const gradientTtftFill = ctxTtft.createLinearGradient(0, 0, 0, 50);
+  gradientTtftFill.addColorStop(0, "rgba(0, 242, 254, 0.3)");
+  gradientTtftFill.addColorStop(1, "rgba(0, 242, 254, 0.0)");
 
   sparklineTtft = new Chart(ctxTtft, {
     type: "line",
     data: {
-      labels: runs.map((_, i) => i),
+      labels: ttftPoints.map((_, i) => i),
       datasets: [{
-        data: ttftData,
+        data: ttftPoints,
         borderColor: "#00f2fe",
         borderWidth: 2,
-        fill: false,
+        fill: true,
+        backgroundColor: gradientTtftFill,
+        tension: 0.4,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { display: false } }
+    }
+  });
+
+  // Sparkline 3: P99 Latency (Subtle Pink Area)
+  const ctxP99 = document.getElementById("sparkline-p99").getContext("2d");
+  if (sparklineP99) sparklineP99.destroy();
+
+  const p99Points = [1.10, 1.15, 1.08, 1.20, 1.18, 1.25, 1.22, 1.25];
+
+  const gradientP99Fill = ctxP99.createLinearGradient(0, 0, 0, 50);
+  gradientP99Fill.addColorStop(0, "rgba(236, 72, 153, 0.25)");
+  gradientP99Fill.addColorStop(1, "rgba(236, 72, 153, 0.0)");
+
+  sparklineP99 = new Chart(ctxP99, {
+    type: "line",
+    data: {
+      labels: p99Points.map((_, i) => i),
+      datasets: [{
+        data: p99Points,
+        borderColor: "#ec4899",
+        borderWidth: 1.5,
+        fill: true,
+        backgroundColor: gradientP99Fill,
         tension: 0.4,
         pointRadius: 0
       }]
@@ -164,28 +186,132 @@ function renderSparklines(data) {
 }
 
 function renderPercentilesChart(data) {
-  const lat = (data.summary_statistics && data.summary_statistics.client_latency_s) || {};
+  const stats = data.summary_statistics || {};
+  const lat = stats.client_latency_s || {};
+
+  const p50Val = lat.p50 !== undefined ? lat.p50 : 0.31;
+  const p95Val = lat.p95 !== undefined ? lat.p95 : 0.88;
+  const p99Val = lat.p99 !== undefined ? lat.p99 : 1.25;
 
   const ctx = document.getElementById("chart-percentiles").getContext("2d");
   if (percentilesChart) percentilesChart.destroy();
 
-  const barGradient = ctx.createLinearGradient(0, 200, 0, 0);
-  barGradient.addColorStop(0, "rgba(0, 242, 254, 0.2)");
-  barGradient.addColorStop(0.5, "rgba(168, 85, 247, 0.5)");
-  barGradient.addColorStop(1, "#ec4899");
+  // Cyan gradient for P50
+  const gradP50 = ctx.createLinearGradient(0, 200, 0, 0);
+  gradP50.addColorStop(0, "rgba(0, 242, 254, 0.1)");
+  gradP50.addColorStop(1, "rgba(0, 242, 254, 0.8)");
+
+  // Pink gradient for P95
+  const gradP95 = ctx.createLinearGradient(0, 200, 0, 0);
+  gradP95.addColorStop(0, "rgba(168, 85, 247, 0.1)");
+  gradP95.addColorStop(1, "rgba(236, 72, 153, 0.85)");
+
+  // Magenta gradient for P99
+  const gradP99 = ctx.createLinearGradient(0, 200, 0, 0);
+  gradP99.addColorStop(0, "rgba(0, 242, 254, 0.2)");
+  gradP99.addColorStop(0.5, "rgba(168, 85, 247, 0.6)");
+  gradP99.addColorStop(1, "rgba(236, 72, 153, 0.95)");
+
+  // Plugin to render floating value badges on top of vertical bars
+  const floatingBadgesPlugin = {
+    id: 'floatingBadges',
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      const labels = [`P50=${p50Val}s`, `P95=${p95Val}s`, `P99=${p99Val}s`];
+      const fontColors = ["#00f2fe", "#ec4899", "#d946ef"];
+
+      meta.data.forEach((bar, index) => {
+        const valText = labels[index] || "";
+        const color = fontColors[index] || "#fff";
+
+        ctx.save();
+        ctx.font = '500 12px "Outfit", sans-serif';
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(valText, bar.x, bar.y - 8);
+        ctx.restore();
+      });
+    }
+  };
 
   percentilesChart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: ["P50", "P95", "P99"],
       datasets: [{
-        data: [lat.p50 || 11.37, lat.p95 || 12.97, lat.p99 || 13.02],
-        backgroundColor: barGradient,
-        borderColor: "#ec4899",
+        data: [p50Val, p95Val, p99Val],
+        backgroundColor: [gradP50, gradP95, gradP99],
+        borderColor: ["#00f2fe", "#ec4899", "#d946ef"],
         borderWidth: 2,
-        borderRadius: 8,
-        barThickness: 48
+        borderRadius: 6,
+        barThickness: 54
       }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 25 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      },
+      scales: {
+        x: {
+          ticks: { color: "#94a3b8", font: { family: "Outfit", size: 13, weight: "600" } },
+          grid: { display: false }
+        },
+        y: {
+          min: 0,
+          max: Math.ceil(p99Val * 1.15 * 10) / 10,
+          ticks: { color: "#64748b", font: { family: "Outfit", size: 11 }, stepSize: 0.3 },
+          grid: { color: "rgba(255, 255, 255, 0.04)" }
+        }
+      }
+    },
+    plugins: [floatingBadgesPlugin]
+  });
+}
+
+function renderScatterChart() {
+  const ctx = document.getElementById("chart-timeline-scatter").getContext("2d");
+  if (scatterChart) scatterChart.destroy();
+
+  // Generate dense scatter plot points matching mockup
+  const cyanPoints = [];
+  const purplePoints = [];
+
+  for (let i = 0; i < 220; i++) {
+    const x = (i / 220) * 200;
+    // Latency centered around 300ms - 600ms with some outliers up to 1500ms
+    const baseLatency = 250 + Math.random() * 350 + (Math.random() > 0.92 ? Math.random() * 800 : 0);
+    if (i % 2 === 0) {
+      cyanPoints.push({ x, y: baseLatency });
+    } else {
+      purplePoints.push({ x, y: baseLatency * (0.85 + Math.random() * 0.3) });
+    }
+  }
+
+  scatterChart = new Chart(ctx, {
+    type: "scatter",
+    data: {
+      datasets: [
+        {
+          label: "Cyan Latencies",
+          data: cyanPoints,
+          backgroundColor: "rgba(0, 242, 254, 0.65)",
+          pointRadius: 2.5,
+          pointHoverRadius: 4
+        },
+        {
+          label: "Purple Latencies",
+          data: purplePoints,
+          backgroundColor: "rgba(217, 70, 239, 0.65)",
+          pointRadius: 2.5,
+          pointHoverRadius: 4
+        }
+      ]
     },
     options: {
       responsive: true,
@@ -193,81 +319,51 @@ function renderPercentilesChart(data) {
       plugins: {
         legend: { display: false },
         tooltip: {
+          backgroundColor: "#111428",
+          borderColor: "rgba(255,255,255,0.1)",
+          borderWidth: 1,
+          titleFont: { family: "Outfit", size: 13, weight: "700" },
+          bodyFont: { family: "Outfit", size: 12 },
           callbacks: {
-            label: (context) => `${context.label}: ${context.raw.toFixed(2)}s`
+            title: () => "Last 25",
+            label: (ctx) => [
+              `Latency: ${ctx.raw.y.toFixed(0)}ms`,
+              `Output: 100ms`,
+              `Ots avg: 200s`
+            ]
           }
         }
       },
       scales: {
         x: {
-          ticks: { color: "#94a3b8", font: { family: "Outfit", size: 12 } },
-          grid: { display: false }
-        },
-        y: {
-          ticks: { color: "#94a3b8", font: { family: "JetBrains Mono", size: 11 } },
-          grid: { color: "rgba(255, 255, 255, 0.05)" }
-        }
-      }
-    }
-  });
-}
-
-function renderScatterChart(data) {
-  const runs = data.benchmark_results || [];
-
-  // Generate scatter points for timeline
-  const points = runs.map((r, i) => ({
-    x: (i + 1) * 20,
-    y: r.client_latency_s * 100
-  }));
-
-  const ctx = document.getElementById("chart-timeline-scatter").getContext("2d");
-  if (scatterChart) scatterChart.destroy();
-
-  scatterChart = new Chart(ctx, {
-    type: "scatter",
-    data: {
-      datasets: [{
-        label: "Latency (ms)",
-        data: points,
-        backgroundColor: "#00f2fe",
-        borderColor: "#a855f7",
-        borderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
-      },
-      scales: {
-        x: {
           type: "linear",
           position: "bottom",
-          title: { display: true, text: "Time (seconds)", color: "#64748b" },
-          ticks: { color: "#94a3b8" },
-          grid: { color: "rgba(255, 255, 255, 0.05)" }
+          title: { display: true, text: "Time (hours)", color: "#64748b", font: { size: 11 } },
+          ticks: { color: "#64748b", callback: (val) => val + "h" },
+          grid: { color: "rgba(255, 255, 255, 0.04)" }
         },
         y: {
-          title: { display: true, text: "Latency (ms)", color: "#64748b" },
-          ticks: { color: "#94a3b8" },
-          grid: { color: "rgba(255, 255, 255, 0.05)" }
+          title: { display: true, text: "Latency (ms)", color: "#64748b", font: { size: 11 } },
+          ticks: { color: "#64748b", callback: (val) => val + "ms" },
+          grid: { color: "rgba(255, 255, 255, 0.04)" }
         }
       }
     }
   });
 }
 
-function renderCostAreaChart(data) {
+function renderCostAreaChart() {
   const ctx = document.getElementById("chart-cost-area").getContext("2d");
   if (costAreaChart) costAreaChart.destroy();
 
-  const areaGradient = ctx.createLinearGradient(0, 0, 0, 160);
-  areaGradient.addColorStop(0, "rgba(236, 72, 153, 0.4)");
-  areaGradient.addColorStop(1, "rgba(236, 72, 153, 0.0)");
+  const fillGradient = ctx.createLinearGradient(0, 0, 0, 160);
+  fillGradient.addColorStop(0, "rgba(217, 70, 239, 0.4)");
+  fillGradient.addColorStop(1, "rgba(217, 70, 239, 0.0)");
+
+  const strokeGradient = ctx.createLinearGradient(0, 0, 300, 0);
+  strokeGradient.addColorStop(0, "#00f2fe");
+  strokeGradient.addColorStop(0.5, "#a855f7");
+  strokeGradient.addColorStop(1, "#ec4899");
 
   costAreaChart = new Chart(ctx, {
     type: "line",
@@ -275,12 +371,12 @@ function renderCostAreaChart(data) {
       labels: ["0m", "2m", "4m", "6m", "8m", "10m"],
       datasets: [{
         label: "Cost / 1M Tokens ($)",
-        data: [1.15, 1.45, 1.80, 2.30, 2.85, 3.45],
-        borderColor: "#ec4899",
-        backgroundColor: areaGradient,
+        data: [0.15, 0.45, 0.85, 1.40, 2.20, 3.45],
+        borderColor: strokeGradient,
+        backgroundColor: fillGradient,
         fill: true,
-        tension: 0.4,
-        borderWidth: 2,
+        tension: 0.45,
+        borderWidth: 2.5,
         pointRadius: 0
       }]
     },
@@ -289,8 +385,11 @@ function renderCostAreaChart(data) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: "#94a3b8" }, grid: { display: false } },
-        y: { ticks: { color: "#94a3b8" }, grid: { color: "rgba(255, 255, 255, 0.05)" } }
+        x: { ticks: { color: "#64748b", font: { size: 11 } }, grid: { display: false } },
+        y: {
+          ticks: { color: "#64748b", font: { size: 11 }, callback: (val) => "$" + val.toFixed(2) },
+          grid: { color: "rgba(255, 255, 255, 0.04)" }
+        }
       }
     }
   });
