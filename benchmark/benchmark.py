@@ -56,7 +56,7 @@ def calculate_percentile(data: list[float], percentile: float) -> float:
     return sorted_data[int(f)] * (c - k) + sorted_data[int(c)] * (k - f)
 
 
-def calculate_statistics(metrics: list[dict]) -> dict:
+def calculate_statistics(metrics: list[dict], benchmark_duration_s: float = 0.0, warmup_duration_s: float = 0.0, total_wall_clock_duration_s: float = 0.0) -> dict:
     """Compute summary statistics across warm benchmark runs."""
     if not metrics:
         return {}
@@ -73,58 +73,74 @@ def calculate_statistics(metrics: list[dict]) -> dict:
     total_prompt = sum(prompt_tokens)
     total_eval = sum(eval_tokens)
     avg_cpu_pct = round(sum(cpu_loads) / len(cpu_loads), 1) if cpu_loads else 85.0
+    mean_latency = sum(client_latencies) / len(client_latencies)
+    mean_tps = sum(tokens_per_sec) / len(tokens_per_sec)
+    mean_ttft = sum(ttft_times) / len(ttft_times)
 
     return {
         "count": len(metrics),
         "successful_requests": len(metrics),
         "failed_requests": 0,
         "cpu_utilization_pct": avg_cpu_pct,
+        "average_latency": round(mean_latency, 3),
+        "p50_latency": round(calculate_percentile(client_latencies, 50), 3),
+        "p95_latency": round(calculate_percentile(client_latencies, 95), 3),
+        "p99_latency": round(calculate_percentile(client_latencies, 99), 3),
+        "min_latency": round(min(client_latencies), 3),
+        "max_latency": round(max(client_latencies), 3),
+        "generation_throughput_tokens_sec": round(mean_tps, 2),
+        "benchmark_duration_s": round(benchmark_duration_s, 2),
+        "warmup_duration_s": round(warmup_duration_s, 2),
+        "total_wall_clock_duration_s": round(total_wall_clock_duration_s, 2),
+        "total_duration_s": round(benchmark_duration_s, 2),
         "client_latency_s": {
-            "mean": sum(client_latencies) / len(client_latencies),
-            "p50": calculate_percentile(client_latencies, 50),
-            "p95": calculate_percentile(client_latencies, 95),
-            "p99": calculate_percentile(client_latencies, 99),
-            "min": min(client_latencies),
-            "max": max(client_latencies),
+            "mean": round(mean_latency, 3),
+            "p50": round(calculate_percentile(client_latencies, 50), 3),
+            "p95": round(calculate_percentile(client_latencies, 95), 3),
+            "p99": round(calculate_percentile(client_latencies, 99), 3),
+            "min": round(min(client_latencies), 3),
+            "max": round(max(client_latencies), 3),
         },
-        "total_duration_s": {
-            "mean": sum(total_durations) / len(total_durations),
-            "p50": calculate_percentile(total_durations, 50),
-            "p95": calculate_percentile(total_durations, 95),
-            "p99": calculate_percentile(total_durations, 99),
-            "min": min(total_durations),
-            "max": max(total_durations),
+        "per_request_total_duration_s": {
+            "mean": round(sum(total_durations) / len(total_durations), 3),
+            "p50": round(calculate_percentile(total_durations, 50), 3),
+            "p95": round(calculate_percentile(total_durations, 95), 3),
+            "p99": round(calculate_percentile(total_durations, 99), 3),
+            "min": round(min(total_durations), 3),
+            "max": round(max(total_durations), 3),
         },
         "ttft_s": {
-            "mean": sum(ttft_times) / len(ttft_times),
-            "p50": calculate_percentile(ttft_times, 50),
-            "p95": calculate_percentile(ttft_times, 95),
-            "p99": calculate_percentile(ttft_times, 99),
-            "min": min(ttft_times),
-            "max": max(ttft_times),
+            "mean": round(mean_ttft, 3),
+            "p50": round(calculate_percentile(ttft_times, 50), 3),
+            "p95": round(calculate_percentile(ttft_times, 95), 3),
+            "p99": round(calculate_percentile(ttft_times, 99), 3),
+            "min": round(min(ttft_times), 3),
+            "max": round(max(ttft_times), 3),
         },
         "eval_duration_s": {
-            "mean": sum(eval_durations) / len(eval_durations),
-            "p50": calculate_percentile(eval_durations, 50),
-            "p95": calculate_percentile(eval_durations, 95),
-            "p99": calculate_percentile(eval_durations, 99),
-            "min": min(eval_durations),
-            "max": max(eval_durations),
+            "mean": round(sum(eval_durations) / len(eval_durations), 3),
+            "p50": round(calculate_percentile(eval_durations, 50), 3),
+            "p95": round(calculate_percentile(eval_durations, 95), 3),
+            "p99": round(calculate_percentile(eval_durations, 99), 3),
+            "min": round(min(eval_durations), 3),
+            "max": round(max(eval_durations), 3),
         },
         "tokens_per_second": {
-            "mean": sum(tokens_per_sec) / len(tokens_per_sec),
-            "p50": calculate_percentile(tokens_per_sec, 50),
-            "p95": calculate_percentile(tokens_per_sec, 95),
-            "p99": calculate_percentile(tokens_per_sec, 99),
-            "min": min(tokens_per_sec),
-            "max": max(tokens_per_sec),
+            "mean": round(mean_tps, 2),
+            "p50": round(calculate_percentile(tokens_per_sec, 50), 2),
+            "p95": round(calculate_percentile(tokens_per_sec, 95), 2),
+            "p99": round(calculate_percentile(tokens_per_sec, 99), 2),
+            "min": round(min(tokens_per_sec), 2),
+            "max": round(max(tokens_per_sec), 2),
         },
         "tokens": {
             "total_prompt_tokens": total_prompt,
             "total_eval_tokens": total_eval,
+            "prompt_tokens": total_prompt,
+            "generated_tokens": total_eval,
             "total_tokens": total_prompt + total_eval,
-            "avg_prompt_tokens": total_prompt / len(prompt_tokens) if prompt_tokens else 0,
-            "avg_eval_tokens": total_eval / len(eval_tokens) if eval_tokens else 0,
+            "avg_prompt_tokens": round(total_prompt / len(prompt_tokens), 1) if prompt_tokens else 0,
+            "avg_eval_tokens": round(total_eval / len(eval_tokens), 1) if eval_tokens else 0,
         },
     }
 
@@ -313,8 +329,11 @@ def main():
     print(f"Prompt:         \"{args.prompt}\"")
     print("==================================================\n")
 
+    script_start = time.perf_counter()
+
     # 1. Warmup Requests
     warmup_results = []
+    warmup_start = time.perf_counter()
     for i in range(args.warmup):
         print(f"🔥 Executing Warmup Run {i + 1}/{args.warmup}...", end="", flush=True)
         res = send_inference_request(
@@ -322,10 +341,13 @@ def main():
         )
         warmup_results.append(res)
         print(f" Done ({res['client_latency_s']:.2f}s | {res['tokens_per_second']:.2f} tok/s)")
+    warmup_end = time.perf_counter()
+    warmup_duration_s = warmup_end - warmup_start
 
     # 2. Warm Benchmark Runs
     benchmark_results = []
     print("\n⚡ Executing Benchmark Runs...")
+    warm_start = time.perf_counter()
     for i in range(args.num_requests):
         req_id = f"run_{i + 1}"
         print(f"  [Run {i + 1:02d}/{args.num_requests:02d}] Calling API...", end="", flush=True)
@@ -334,9 +356,17 @@ def main():
         )
         benchmark_results.append(res)
         print(f" Total: {res['client_latency_s']:.2f}s | TTFT: {res['ttft_s']:.3f}s | Out Tokens: {res['eval_count']} | Throughput: {res['tokens_per_second']:.2f} tok/s")
+    warm_end = time.perf_counter()
+    benchmark_duration_s = warm_end - warm_start
+    total_wall_clock_duration_s = warm_end - script_start
 
     # 3. Calculate Summary Statistics
-    stats = calculate_statistics(benchmark_results)
+    stats = calculate_statistics(
+        benchmark_results,
+        benchmark_duration_s=benchmark_duration_s,
+        warmup_duration_s=warmup_duration_s,
+        total_wall_clock_duration_s=total_wall_clock_duration_s,
+    )
 
     # 4. Display Results Summary Table
     print("\n==================================================")
@@ -344,6 +374,7 @@ def main():
     print("==================================================")
     print(f"Runtime Engine:        {runtime_engine}")
     print(f"Successful Runs:       {stats['count']}")
+    print(f"Benchmark Duration:    {stats['benchmark_duration_s']:.2f} s")
     print(f"Avg Client Latency:    {stats['client_latency_s']['mean']:.3f} s")
     print(f"P50 Client Latency:    {stats['client_latency_s']['p50']:.3f} s")
     print(f"P95 Client Latency:    {stats['client_latency_s']['p95']:.3f} s")
@@ -352,7 +383,7 @@ def main():
     print("--------------------------------------------------")
     print(f"Avg TTFT:              {stats['ttft_s']['mean']:.3f} s")
     print(f"P50 TTFT:              {stats['ttft_s']['p50']:.3f} s")
-    print(f"P95 TTFT:              {stats['ttft_s']['p50']:.3f} s")
+    print(f"P95 TTFT:              {stats['ttft_s']['p95']:.3f} s")
     print("--------------------------------------------------")
     print(f"Mean Generation Speed: {stats['tokens_per_second']['mean']:.2f} tokens/sec")
     print(f"Min Generation Speed:  {stats['tokens_per_second']['min']:.2f} tokens/sec")
@@ -369,6 +400,12 @@ def main():
     output_data = {
         "metadata": {
             "run_id": run_id,
+            "runtime": runtime_engine,
+            "endpoint": args.url,
+            "model": args.model,
+            "model_format": "GGUF Q4_K_M" if "llama" in runtime_engine.lower() else "Ollama Native",
+            "quantization": "Q4_K_M",
+            "hardware": args.hardware,
             "timestamp_utc": timestamp,
             "system_info": {
                 "platform": platform.platform(),

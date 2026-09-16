@@ -98,7 +98,11 @@ function fetchRealBaseline() {
   const pOllama = fetch('data/ec2_cpu_baseline.json')
     .then(res => res.json())
     .then(data => {
-      runtimesData.ollama = data;
+      if (data && data.summary_statistics && data.summary_statistics.count) {
+        runtimesData.ollama = data;
+      } else {
+        runtimesData.ollama = REAL_EC2_BASELINE;
+      }
     })
     .catch(() => {
       runtimesData.ollama = REAL_EC2_BASELINE;
@@ -107,7 +111,11 @@ function fetchRealBaseline() {
   const pLlama = fetch('data/llamacpp_ec2_cpu_baseline.json')
     .then(res => res.json())
     .then(data => {
-      runtimesData.llamacpp = data;
+      if (data && data.summary_statistics && data.summary_statistics.count && data.summary_statistics.count >= 1) {
+        runtimesData.llamacpp = data;
+      } else {
+        runtimesData.llamacpp = null;
+      }
     })
     .catch(() => {
       runtimesData.llamacpp = null;
@@ -124,8 +132,11 @@ function initDashboard(data) {
   updateMetadataHeader(data);
   updateHeroCards(data);
   updateCostBreakdown(data);
-  const cpuPct = (data.summary_statistics && data.summary_statistics.cpu_utilization_pct) || 87.4;
-  updateCpuGauge(cpuPct, "8/8 vCPU");
+  const cpuPct = (data.summary_statistics && typeof data.summary_statistics.cpu_utilization_pct === 'number') 
+    ? data.summary_statistics.cpu_utilization_pct 
+    : 87.4;
+  const isMeasured = Boolean(data.summary_statistics && typeof data.summary_statistics.cpu_utilization_pct === 'number');
+  updateCpuGauge(cpuPct, "8/8 vCPU", false, isMeasured);
   renderSparklines(data);
   renderPercentilesChart(data);
   renderScatterChart(data);
@@ -144,17 +155,24 @@ function updateMetadataHeader(data) {
 
   document.getElementById("meta-run-id").textContent = meta.run_id || "RUN-20260915-001";
   document.getElementById("meta-model").textContent = config.model || "Qwen 2.5 7B";
-  document.getElementById("meta-runtime").textContent = sys.runtime_engine || "Ollama";
-  document.getElementById("meta-hardware").textContent = sys.hardware || "AWS EC2 c7i (8 vCPU Intel Xeon)";
+  document.getElementById("meta-runtime").textContent = sys.runtime_engine || meta.runtime || "Ollama";
+  document.getElementById("meta-hardware").textContent = sys.hardware || meta.hardware || "AWS EC2 c7i (8 vCPU Intel Xeon)";
   document.getElementById("meta-concurrency").textContent = `${config.concurrency || 1} worker${(config.concurrency || 1) > 1 ? 's' : ''}`;
-  document.getElementById("meta-requests").textContent = `${stats.count || config.num_requests || 10} reqs / ${config.warmup_requests || 1} warmup`;
-  
+  document.getElementById("meta-requests").textContent = `${stats.count || config.num_requests || 10} reqs / ${config.warmup_requests || config.warmup || 1} warmup`;
+
   const sampleCount = stats.count || 10;
   document.getElementById("meta-sample-count").textContent = `n = ${sampleCount} samples`;
   const countBadge = document.getElementById("sample-count-badge");
   if (countBadge) countBadge.textContent = `n = ${sampleCount} samples`;
 
-  const totalDur = stats.total_duration_s ? `${stats.total_duration_s.toFixed(2)}s total` : "111.05s total";
+  let totalDur = "—";
+  if (typeof stats.benchmark_duration_s === 'number') {
+    totalDur = `${stats.benchmark_duration_s.toFixed(2)}s total`;
+  } else if (typeof stats.total_duration_s === 'number') {
+    totalDur = `${stats.total_duration_s.toFixed(2)}s total`;
+  } else if (stats.client_latency_s && stats.count && typeof stats.client_latency_s.mean === 'number') {
+    totalDur = `${(stats.client_latency_s.mean * stats.count).toFixed(2)}s total`;
+  }
   document.getElementById("meta-duration").textContent = totalDur;
 
   const promptText = config.prompt ? `"${config.prompt}"` : '"Explain Kubernetes container orchestration and pod scheduling in under 100 words."';
@@ -169,21 +187,47 @@ function updateHeroCards(data) {
   const config = (data.metadata && data.metadata.configuration) || {};
   const sys = (data.metadata && data.metadata.system_info) || {};
 
-  document.getElementById("kpi-tps").textContent = (tps.mean ? tps.mean.toFixed(2) : "7.31");
-  document.getElementById("kpi-ttft").textContent = (ttft.p50 ? ttft.p50.toFixed(3) : (ttft.mean ? ttft.mean.toFixed(3) : "0.139")) + "s";
-  document.getElementById("kpi-p99").textContent = (lat.p99 ? lat.p99.toFixed(2) : "13.02") + "s";
+  const tpsVal = typeof stats.generation_throughput_tokens_sec === 'number'
+    ? stats.generation_throughput_tokens_sec
+    : (typeof tps.mean === 'number' ? tps.mean : null);
+
+  const ttftVal = typeof stats.ttft_s === 'number'
+    ? stats.ttft_s
+    : (ttft.p50 !== undefined ? ttft.p50 : (ttft.mean !== undefined ? ttft.mean : null));
+
+  const p99Val = typeof stats.p99_latency === 'number'
+    ? stats.p99_latency
+    : (lat.p99 !== undefined ? lat.p99 : null);
+
+  document.getElementById("kpi-tps").textContent = tpsVal !== null ? tpsVal.toFixed(2) : "—";
+  document.getElementById("kpi-ttft").textContent = ttftVal !== null ? `${ttftVal.toFixed(3)}s` : "—";
+  document.getElementById("kpi-p99").textContent = p99Val !== null ? `${p99Val.toFixed(2)}s` : "—";
 
   document.getElementById("spec-model").textContent = config.model || "qwen2.5:7b";
-  document.getElementById("spec-framework").textContent = config.url || "/api/generate";
+  document.getElementById("spec-framework").textContent = config.url || metaEndpoint(data) || "/api/generate";
   document.getElementById("spec-hardware").textContent = sys.hardware || "AWS EC2 c7i 8 vCPU";
 
   const sub = document.getElementById("scatter-sub");
   if (sub) sub.textContent = `Sequential request timestamps (n=${stats.count || 10})`;
 }
 
+function metaEndpoint(data) {
+  return (data.metadata && (data.metadata.endpoint || (data.metadata.configuration && data.metadata.configuration.url))) || null;
+}
+
 function updateCostBreakdown(data) {
   const hourlyRate = parseFloat(document.getElementById("setting-rate")?.value || 0.384);
-  const tpsMean = (data.summary_statistics && data.summary_statistics.tokens_per_second && data.summary_statistics.tokens_per_second.mean) || 7.31;
+  const stats = data.summary_statistics || {};
+  const tpsMean = typeof stats.generation_throughput_tokens_sec === 'number'
+    ? stats.generation_throughput_tokens_sec
+    : ((stats.tokens_per_second && typeof stats.tokens_per_second.mean === 'number') ? stats.tokens_per_second.mean : null);
+
+  if (!tpsMean || tpsMean <= 0) {
+    document.getElementById("cost-1m").textContent = "—";
+    document.getElementById("cost-input").textContent = "—";
+    document.getElementById("cost-output").textContent = "—";
+    return;
+  }
 
   const secondsPerMillion = 1000000 / tpsMean;
   const costPerMillion = (hourlyRate / 3600) * secondsPerMillion;
@@ -209,35 +253,53 @@ function updateRuntimeComparisonMatrix() {
   const hourlyRate = parseFloat(document.getElementById("setting-rate")?.value || 0.384);
 
   // 1. Ollama (Active Baseline)
-  if (runtimesData.ollama) {
+  if (runtimesData.ollama && runtimesData.ollama.summary_statistics) {
     const stats = runtimesData.ollama.summary_statistics || {};
-    const tpsMean = (stats.tokens_per_second && stats.tokens_per_second.mean) || 7.31;
+    const tpsMean = typeof stats.generation_throughput_tokens_sec === 'number'
+      ? stats.generation_throughput_tokens_sec
+      : (stats.tokens_per_second ? stats.tokens_per_second.mean : null);
+
     const lat = stats.client_latency_s || {};
-    const p50 = lat.p50 || 11.37;
-    const p95 = lat.p95 || 12.97;
-    const cpuLoad = stats.cpu_utilization_pct ? `${stats.cpu_utilization_pct.toFixed(1)}%` : "87.4%";
-    const costPerMillion = (hourlyRate / 3600) * (1000000 / tpsMean);
+    const p50 = typeof stats.p50_latency === 'number' ? stats.p50_latency : lat.p50;
+    const p95 = typeof stats.p95_latency === 'number' ? stats.p95_latency : lat.p95;
+    const cpuLoad = typeof stats.cpu_utilization_pct === 'number' ? `${stats.cpu_utilization_pct.toFixed(1)}%` : "—";
+    const costPerMillion = tpsMean ? (hourlyRate / 3600) * (1000000 / tpsMean) : null;
 
     const elTps = document.getElementById("matrix-ollama-tps");
-    if (elTps) elTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
+    if (elTps) elTps.textContent = tpsMean ? `${tpsMean.toFixed(2)} tok/s` : "—";
 
     const elTreeTps = document.getElementById("tree-tps-ollama");
-    if (elTreeTps) elTreeTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
+    if (elTreeTps) elTreeTps.textContent = tpsMean ? `${tpsMean.toFixed(2)} tok/s` : "— tok/s";
 
     const elP50 = document.getElementById("matrix-ollama-p50");
-    if (elP50) elP50.textContent = `${p50.toFixed(2)}s`;
+    if (elP50) elP50.textContent = p50 !== undefined ? `${p50.toFixed(2)}s` : "—";
 
     const elP95 = document.getElementById("matrix-ollama-p95");
-    if (elP95) elP95.textContent = `${p95.toFixed(2)}s`;
+    if (elP95) elP95.textContent = p95 !== undefined ? `${p95.toFixed(2)}s` : "—";
 
     const elCpu = document.getElementById("matrix-ollama-cpu");
     if (elCpu) elCpu.textContent = cpuLoad;
 
     const elCost = document.getElementById("matrix-ollama-cost");
-    if (elCost) elCost.textContent = `$${costPerMillion.toFixed(2)} / 1M`;
+    if (elCost) elCost.textContent = costPerMillion ? `$${costPerMillion.toFixed(2)} / 1M` : "—";
 
     const elStatus = document.getElementById("matrix-ollama-status");
     if (elStatus) elStatus.innerHTML = '<span class="status-badge active">Active Baseline</span>';
+  } else {
+    const elTps = document.getElementById("matrix-ollama-tps");
+    if (elTps) elTps.textContent = "—";
+    const elTreeTps = document.getElementById("tree-tps-ollama");
+    if (elTreeTps) elTreeTps.textContent = "— tok/s";
+    const elP50 = document.getElementById("matrix-ollama-p50");
+    if (elP50) elP50.textContent = "—";
+    const elP95 = document.getElementById("matrix-ollama-p95");
+    if (elP95) elP95.textContent = "—";
+    const elCpu = document.getElementById("matrix-ollama-cpu");
+    if (elCpu) elCpu.textContent = "—";
+    const elCost = document.getElementById("matrix-ollama-cost");
+    if (elCost) elCost.textContent = "—";
+    const elStatus = document.getElementById("matrix-ollama-status");
+    if (elStatus) elStatus.innerHTML = '<span class="status-badge standby">No benchmark data</span>';
   }
 
   // 2. llama.cpp (Benchmarked or Planned)
@@ -250,21 +312,24 @@ function updateRuntimeComparisonMatrix() {
   const elLlamaStatus = document.getElementById("matrix-llama-status");
   const elTreeLlamaCard = document.getElementById("tree-card-llama");
 
-  if (runtimesData.llamacpp) {
+  if (runtimesData.llamacpp && runtimesData.llamacpp.summary_statistics) {
     const stats = runtimesData.llamacpp.summary_statistics || {};
-    const tpsMean = (stats.tokens_per_second && stats.tokens_per_second.mean) || 8.51;
-    const lat = stats.client_latency_s || {};
-    const p50 = lat.p50 || 9.75;
-    const p95 = lat.p95 || 11.12;
-    const cpuLoad = stats.cpu_utilization_pct ? `${stats.cpu_utilization_pct.toFixed(1)}%` : "82.1%";
-    const costPerMillion = (hourlyRate / 3600) * (1000000 / tpsMean);
+    const tpsMean = typeof stats.generation_throughput_tokens_sec === 'number'
+      ? stats.generation_throughput_tokens_sec
+      : (stats.tokens_per_second ? stats.tokens_per_second.mean : null);
 
-    if (elLlamaTps) elLlamaTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
-    if (elTreeLlamaTps) elTreeLlamaTps.textContent = `${tpsMean.toFixed(2)} tok/s`;
-    if (elLlamaP50) elLlamaP50.textContent = `${p50.toFixed(2)}s`;
-    if (elLlamaP95) elLlamaP95.textContent = `${p95.toFixed(2)}s`;
+    const lat = stats.client_latency_s || {};
+    const p50 = typeof stats.p50_latency === 'number' ? stats.p50_latency : lat.p50;
+    const p95 = typeof stats.p95_latency === 'number' ? stats.p95_latency : lat.p95;
+    const cpuLoad = typeof stats.cpu_utilization_pct === 'number' ? `${stats.cpu_utilization_pct.toFixed(1)}%` : "—";
+    const costPerMillion = tpsMean ? (hourlyRate / 3600) * (1000000 / tpsMean) : null;
+
+    if (elLlamaTps) elLlamaTps.textContent = tpsMean ? `${tpsMean.toFixed(2)} tok/s` : "—";
+    if (elTreeLlamaTps) elTreeLlamaTps.textContent = tpsMean ? `${tpsMean.toFixed(2)} tok/s` : "— tok/s";
+    if (elLlamaP50) elLlamaP50.textContent = p50 !== undefined ? `${p50.toFixed(2)}s` : "—";
+    if (elLlamaP95) elLlamaP95.textContent = p95 !== undefined ? `${p95.toFixed(2)}s` : "—";
     if (elLlamaCpu) elLlamaCpu.textContent = cpuLoad;
-    if (elLlamaCost) elLlamaCost.textContent = `$${costPerMillion.toFixed(2)} / 1M`;
+    if (elLlamaCost) elLlamaCost.textContent = costPerMillion ? `$${costPerMillion.toFixed(2)} / 1M` : "—";
     if (elLlamaStatus) elLlamaStatus.innerHTML = '<span class="status-badge active" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan);">Benchmarked</span>';
     if (elTreeLlamaCard) {
       elTreeLlamaCard.classList.remove("pending");
@@ -277,7 +342,7 @@ function updateRuntimeComparisonMatrix() {
     if (elLlamaP95) elLlamaP95.textContent = "—";
     if (elLlamaCpu) elLlamaCpu.textContent = "—";
     if (elLlamaCost) elLlamaCost.textContent = "—";
-    if (elLlamaStatus) elLlamaStatus.innerHTML = '<span class="status-badge standby">Planned (Exp 9)</span>';
+    if (elLlamaStatus) elLlamaStatus.innerHTML = '<span class="status-badge standby">Planned (No benchmark data)</span>';
     if (elTreeLlamaCard) {
       elTreeLlamaCard.classList.add("pending");
       elTreeLlamaCard.classList.remove("active");
@@ -286,7 +351,7 @@ function updateRuntimeComparisonMatrix() {
 
   // 3. vLLM (Planned)
   const elVllmStatus = document.getElementById("matrix-vllm-status");
-  if (elVllmStatus) elVllmStatus.innerHTML = '<span class="status-badge standby">Planned (Exp 11)</span>';
+  if (elVllmStatus) elVllmStatus.innerHTML = '<span class="status-badge standby">Planned</span>';
 }
 
 function renderRuntimeComparisonChart() {
@@ -294,11 +359,19 @@ function renderRuntimeComparisonChart() {
   if (!ctx) return;
   if (runtimeComparisonChart) runtimeComparisonChart.destroy();
 
-  const ollamaTps = (runtimesData.ollama && runtimesData.ollama.summary_statistics && runtimesData.ollama.summary_statistics.tokens_per_second && runtimesData.ollama.summary_statistics.tokens_per_second.mean) || 7.31;
-  const llamaTps = (runtimesData.llamacpp && runtimesData.llamacpp.summary_statistics && runtimesData.llamacpp.summary_statistics.tokens_per_second && runtimesData.llamacpp.summary_statistics.tokens_per_second.mean) || 0;
+  const getTps = (runtimeObj) => {
+    if (!runtimeObj || !runtimeObj.summary_statistics) return 0;
+    const s = runtimeObj.summary_statistics;
+    if (typeof s.generation_throughput_tokens_sec === 'number') return s.generation_throughput_tokens_sec;
+    if (s.tokens_per_second && typeof s.tokens_per_second.mean === 'number') return s.tokens_per_second.mean;
+    return 0;
+  };
+
+  const ollamaTps = getTps(runtimesData.ollama);
+  const llamaTps = getTps(runtimesData.llamacpp);
   const vllmTps = 0;
 
-  const llamaLabel = runtimesData.llamacpp ? "llama.cpp (Benchmarked)" : "llama.cpp (Planned)";
+  const llamaLabel = runtimesData.llamacpp && runtimesData.llamacpp.summary_statistics ? "llama.cpp (Benchmarked)" : "llama.cpp (Planned)";
   const maxTps = Math.max(ollamaTps, llamaTps, 1);
 
   const gradOllama = ctx.createLinearGradient(0, 220, 0, 0);
@@ -322,7 +395,7 @@ function renderRuntimeComparisonChart() {
         data: [ollamaTps, llamaTps, vllmTps],
         backgroundColor: [
           gradOllama,
-          runtimesData.llamacpp ? gradLlama : "rgba(236, 72, 153, 0.25)",
+          runtimesData.llamacpp && runtimesData.llamacpp.summary_statistics ? gradLlama : "rgba(236, 72, 153, 0.25)",
           gradVllm
         ],
         borderColor: ["#00f2fe", "#ec4899", "#a855f7"],
@@ -339,18 +412,18 @@ function renderRuntimeComparisonChart() {
       },
       scales: {
         x: { ticks: { color: "#94a3b8", font: { family: "Outfit", size: 12, weight: "600" } }, grid: { display: false } },
-        y: { 
-          min: 0, 
-          max: Math.ceil(maxTps * 1.3), 
-          ticks: { color: "#64748b", font: { family: "JetBrains Mono", size: 11 } }, 
-          grid: { color: "rgba(255, 255, 255, 0.04)" } 
+        y: {
+          min: 0,
+          max: Math.ceil(maxTps * 1.3),
+          ticks: { color: "#64748b", font: { family: "JetBrains Mono", size: 11 } },
+          grid: { color: "rgba(255, 255, 255, 0.04)" }
         }
       }
     }
   });
 }
 
-function updateCpuGauge(pct, coresStr, isLive = false) {
+function updateCpuGauge(pct, coresStr, isLive = false, isMeasured = true) {
   const cpuVal = typeof pct === 'number' ? pct : parseFloat(pct);
   const validPct = isNaN(cpuVal) ? 87.4 : Math.min(Math.max(cpuVal, 0), 100);
 
@@ -372,8 +445,15 @@ function updateCpuGauge(pct, coresStr, isLive = false) {
     if (isLive) {
       badge.className = "badge-provenance live";
       badge.textContent = "LIVE RUN";
-    } else {
+    } else if (isMeasured) {
       badge.className = "badge-provenance benchmark";
+      badge.textContent = "BENCHMARK DATA";
+    } else {
+      badge.className = "badge-provenance estimated";
+      badge.textContent = "ESTIMATED";
+    }
+  }
+}
       badge.textContent = "BENCHMARK DATA";
     }
   }
@@ -689,8 +769,8 @@ function renderScatterChart(data) {
           type: "linear",
           position: "bottom",
           title: { display: true, text: "Sequential Request Number (Run ID)", color: "#64748b", font: { size: 11 } },
-          ticks: { 
-            color: "#64748b", 
+          ticks: {
+            color: "#64748b",
             stepSize: 1,
             callback: (val) => "Run " + Math.round(val)
           },
@@ -869,7 +949,7 @@ function setupInteractivity() {
       initDashboard(currentDataset);
       return;
     }
-    const filteredRuns = (currentDataset.benchmark_results || []).filter(r => 
+    const filteredRuns = (currentDataset.benchmark_results || []).filter(r =>
       r.request_id.includes(q) || (r.snippet && r.snippet.toLowerCase().includes(q))
     );
     const filteredData = { ...currentDataset, benchmark_results: filteredRuns };
@@ -1008,15 +1088,15 @@ async function executeLiveBenchmark() {
     metadata: {
       run_id: runId,
       timestamp_utc: new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 15),
-      system_info: { 
+      system_info: {
         hardware: "AWS EC2 c7i (8 vCPU Intel Xeon)",
         runtime_engine: "Ollama",
         platform: "AWS EC2 c7i"
       },
-      configuration: { 
-        url: urlInput, 
-        model: model, 
-        prompt: prompt, 
+      configuration: {
+        url: urlInput,
+        model: model,
+        prompt: prompt,
         num_requests: numReqs,
         concurrency: concurrency,
         warmup_requests: warmup
