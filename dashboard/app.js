@@ -454,10 +454,6 @@ function updateCpuGauge(pct, coresStr, isLive = false, isMeasured = true) {
     }
   }
 }
-      badge.textContent = "BENCHMARK DATA";
-    }
-  }
-}
 
 function renderEqualizerBars() {
   const container = document.getElementById("equalizer-bars");
